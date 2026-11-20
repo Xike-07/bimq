@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>bimQ · 项目问题闭环平台（图纸与模型联动）</title>
+<style>
+:root{
+  --ink:#0f1b2d; --ink2:#2c3a4e; --muted:#66748a; --faint:#94a1b5;
+  --line:#e1e7f0; --line2:#c9d4e4;
+  --bg:#f1f5fa; --surface:#fff; --canvas:#fbfcfe;
+  --brand:#1f5fd0; --brand2:#3b7de8; --brandSoft:#eaf1fd;
+  --brandDeep:#0f3a80; --brandDeep2:#1b55b8;
+  --ok:#1e7a57; --okSoft:#e8f4ef;
+  --warn:#a76a12; --warnSoft:#fbf0df;
+  --bad:#b03a2e; --badSoft:#faeae7;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+html{overflow-x:hidden}
+.top,.insight,main{min-width:0}
+body{
+  font-family:var(--sans);background:var(--bg);color:var(--ink);
+  font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#ccd7e6;border-radius:99px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:#b9c6da;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ============ top ============ */
+.top{
+  flex:0 0 54px;height:54px;
+  background:linear-gradient(96deg,#0d3576 0%,#1a51ae 55%,#2a67d6 100%);
+  border-bottom:1px solid rgba(255,255,255,.10);
+  display:flex;align-items:center;gap:14px;padding:0 16px;z-index:30;position:relative;
+  color:#fff;
+}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;flex:0 0 auto;color:#fff}
+.brand-mark{
+  width:25px;height:25px;border-radius:7px;background:#fff;color:#16469e;
+  display:grid;place-items:center;flex:0 0 auto;box-shadow:0 1px 3px rgba(6,26,60,.25);
+}
+.brand small{display:block;font-size:9px;font-weight:400;color:rgba(255,255,255,.62);letter-spacing:.12em;line-height:1.2}
+.wm{line-height:1.16;letter-spacing:-.01em}
+.wm i{font-style:normal;font-weight:700;color:#a9c9ff;margin-left:1px}
+.sep{width:1px;height:20px;background:rgba(255,255,255,.20);flex:0 0 auto}
+.proj{font-size:12.5px;color:rgba(255,255,255,.94);display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.proj b{font-weight:500}
+.proj span{color:rgba(255,255,255,.58);font-size:11.5px}
+.tabs{display:flex;gap:2px;background:rgba(255,255,255,.13);border-radius:9px;padding:3px;margin-left:auto;flex:0 0 auto}
+.tab{
+  font-size:12.5px;color:rgba(255,255,255,.76);padding:4px 13px;border-radius:7px;transition:.15s;
+  display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.tab:hover{color:#fff}
+.tab.on{background:#fff;color:#16469e;font-weight:500;box-shadow:0 1px 2px rgba(6,26,60,.18)}
+.tab .n{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.6)}
+.tab.on .n{color:#6d8cc8}
+.roles{display:flex;gap:2px;background:rgba(255,255,255,.13);border-radius:9px;padding:3px;flex:0 0 auto}
+.role{font-size:12px;color:rgba(255,255,255,.76);padding:4px 11px;border-radius:7px;transition:.15s;white-space:nowrap}
+.role.on{background:#fff;color:#16469e;font-weight:500;box-shadow:0 1px 2px rgba(6,26,60,.18)}
+.role:not(.on):hover{color:#fff;background:rgba(255,255,255,.10)}
+.icon-btn{
+  width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.3);display:grid;place-items:center;
+  color:rgba(255,255,255,.86);transition:.15s;flex:0 0 auto;
+}
+.icon-btn:hover{border-color:rgba(255,255,255,.7);color:#fff;background:rgba(255,255,255,.10)}
+.avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600;flex:0 0 auto;border:1px solid rgba(255,255,255,.28)}
+
+/* ============ insight ============ */
+.insight{
+  flex:0 0 44px;height:44px;background:linear-gradient(180deg,#f7faff,#fff);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:0;padding:0 16px;overflow-x:auto;z-index:20;
+}
+.ins{display:flex;align-items:baseline;gap:6px;padding:0 18px;border-right:1px solid var(--line);flex:0 0 auto}
+.ins:first-child{padding-left:0}
+.ins .k{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.ins .v{font-size:17px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.ins .u{font-size:11px;color:var(--faint)}
+.ins.hot .v{color:var(--bad)} .ins.warn .v{color:var(--warn)} .ins.good .v{color:var(--ok)}
+.ins .who{font-size:12px;color:var(--ink2);font-weight:500}
+.ins .tip{font-size:10.5px;color:var(--faint);margin-left:2px}
+.insight .degrade{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);flex:0 0 auto;padding-left:14px}
+.switch{width:30px;height:17px;border-radius:99px;background:var(--line2);position:relative;transition:.18s;flex:0 0 auto}
+.switch i{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:.18s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch.on{background:var(--brand)}
+.switch.on i{left:15px}
+
+/* ============ views ============ */
+main{flex:1;min-height:0;position:relative}
+.view{display:none;height:100%}
+.view.on{display:grid}
+#v-loc.on{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 356px}
+
+/* ---------- panes ---------- */
+.pane{display:flex;flex-direction:column;min-width:0;background:var(--surface);overflow:hidden}
+.pane + .pane{border-left:1px solid var(--line)}
+.pane-h{
+  flex:0 0 40px;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;
+  border-bottom:1px solid var(--line);font-size:12px;font-weight:500;color:var(--ink2);background:var(--surface);
+}
+.pane-h .badge{
+  font-size:9.5px;font-weight:600;letter-spacing:.04em;padding:1px 5px;border-radius:4px;
+  background:var(--brandSoft);color:var(--brand);font-family:var(--mono);
+}
+.pane-h .meta{font-size:10.5px;color:var(--faint);font-weight:400;margin-left:2px}
+.pane-h .tools{margin-left:auto;display:flex;gap:5px;align-items:center}
+.tbtn{font-size:11px;color:var(--muted);padding:3px 7px;border-radius:5px;transition:.14s;white-space:nowrap}
+.tbtn:hover{background:var(--bg);color:var(--ink2)}
+.tbtn.on{background:var(--brandSoft);color:var(--brand)}
+.pane-body{flex:1;min-height:0;overflow:auto;display:flex;align-items:center;justify-content:center;padding:10px;background:var(--canvas)}
+.canvas{position:relative;width:100%;max-width:620px;aspect-ratio:640/430}
+.canvas svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pin{
+  position:absolute;transform:translate(-50%,-50%);border-radius:50%;
+  display:grid;place-items:center;font-size:10.5px;font-weight:600;color:#fff;
+  transition:transform .16s,box-shadow .16s;z-index:3;
+}
+.pin.dr{width:22px;height:22px;box-shadow:0 0 0 1.5px #fff}
+.pin.md{width:20px;height:20px;box-shadow:0 0 0 1.5px #fff,0 1px 3px rgba(0,0,0,.25)}
+.pin:hover{transform:translate(-50%,-50%) scale(1.15);z-index:6}
+.pin.sel{transform:translate(-50%,-50%) scale(1.22);z-index:8;box-shadow:0 0 0 2px #fff,0 0 0 5px rgba(31,95,208,.28)}
+.pin.sel::after{
+  content:"";position:absolute;inset:-9px;border-radius:50%;border:1.5px solid rgba(31,95,208,.45);
+  animation:ring 1.8s ease-out infinite;
+}
+@keyframes ring{0%{transform:scale(.8);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+.pin.agg{width:26px;height:26px;background:var(--ink);font-size:11px}
+.pin.closed{background:var(--faint)!important;opacity:.5}
+.pin.review{background:var(--brand2)!important}
+.sev-h{background:var(--bad)} .sev-m{background:var(--warn)} .sev-l{background:var(--muted)}
+.legend{
+  position:absolute;left:10px;bottom:8px;display:flex;gap:10px;font-size:10px;color:var(--faint);
+  background:rgba(255,255,255,.82);padding:3px 7px;border-radius:5px;backdrop-filter:blur(2px);
+}
+.legend i{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle}
+.sheet-tag{
+  position:absolute;right:10px;top:8px;font-family:var(--mono);font-size:10px;color:var(--faint);
+  background:rgba(255,255,255,.82);padding:2px 6px;border-radius:4px;
+}
+/* model faces */
+#modelSvg polygon{stroke-width:.6;stroke-linejoin:round}
+.slab-t{fill:#e3ebf8;stroke:#c6d5ea} .slab-l{fill:#c6d5ea;stroke:#b2c4de} .slab-r{fill:#d3e0f1;stroke:#bccde6}
+.col-t{fill:#cbd8ea;stroke:#a9bcd6} .col-l{fill:#a6b8d2;stroke:#90a5c4} .col-r{fill:#b9c8de;stroke:#9db0cb}
+.duct-t{fill:#d2e2fb;stroke:#9db8e0} .duct-l{fill:#adc5e9;stroke:#8faeda} .duct-r{fill:#bfd3f2;stroke:#9db8e0}
+.pipe-t{fill:#c3d4ef;stroke:#9bb2d6} .pipe-l{fill:#a9bddb;stroke:#8ea6c8} .pipe-r{fill:#b8cae5;stroke:#98aed0}
+.pipe2-t{fill:#cbd9ee;stroke:#a5b8d4} .pipe2-l{fill:#afc1da;stroke:#96abc7} .pipe2-r{fill:#bdcde4;stroke:#a1b5cf}
+.riser-t{fill:#bfd0e7;stroke:#97adcc} .riser-l{fill:#a2b6d1;stroke:#8ba1c1} .riser-r{fill:#b4c5dc;stroke:#99aecb}
+.eq-t{fill:#d5e1f1;stroke:#aec1da} .eq-l{fill:#b4c5db;stroke:#9aafca} .eq-r{fill:#c4d3e6;stroke:#a7bbd3}
+
+/* degraded */
+.pane.degraded .pane-body{display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,#fbfcfe,#fbfcfe 8px,#f6f8fc 8px,#f6f8fc 16px)}
+.dg{text-align:center;padding:30px;max-width:300px}
+.dg-t{font-size:13px;font-weight:500;color:var(--ink2);margin-bottom:6px}
+.dg-s{font-size:11.5px;color:var(--muted);line-height:1.7}
+
+/* ---------- card panel ---------- */
+.panel{display:flex;flex-direction:column;min-width:0;background:var(--surface);border-left:1px solid var(--line);overflow:hidden}
+.panel-h{
+  flex:0 0 40px;height:40px;display:flex;align-items:center;gap:8px;padding:0 14px;
+  border-bottom:1px solid var(--line);font-size:12px;font-weight:500;color:var(--ink2);
+}
+.panel-h .tag{font-size:10px;color:var(--faint);font-weight:400;font-family:var(--mono);margin-left:auto}
+.panel-x{display:none;font-size:11.5px;color:var(--muted);padding:3px 8px;border-radius:5px}
+.panel-x:hover{background:var(--bg)}
+.panel-b{flex:1;min-height:0;overflow:auto;padding:16px 16px 26px}
+.card-empty{color:var(--faint);font-size:12px;text-align:center;padding:50px 16px;line-height:1.9}
+.card-empty b{display:block;color:var(--ink2);font-size:13px;margin-bottom:6px;font-weight:500}
+
+.c-top{display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+.c-id{font-family:var(--mono);font-size:10.5px;color:var(--brand);background:var(--brandSoft);padding:2px 6px;border-radius:4px}
+.chip{font-size:10px;padding:1.5px 6px;border-radius:4px;font-weight:500;white-space:nowrap}
+.chip.h{background:var(--badSoft);color:var(--bad)}
+.chip.m{background:var(--warnSoft);color:var(--warn)}
+.chip.a{background:var(--okSoft);color:var(--ok)}
+.chip.n{background:var(--bg);color:var(--muted);border:1px solid var(--line2)}
+.chip.brand{background:var(--brandSoft);color:var(--brand)}
+
+.c-title{font-size:15.5px;font-weight:600;line-height:1.45;letter-spacing:-.01em;margin-bottom:14px}
+.three{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.th{display:flex;gap:9px}
+.th .n{
+  flex:0 0 18px;height:18px;border-radius:5px;background:var(--bg);color:var(--muted);
+  font-size:10px;display:grid;place-items:center;margin-top:2px;font-family:var(--mono);
+}
+.th .tx{font-size:12.5px;line-height:1.65;color:var(--ink2)}
+.th .lb{display:block;font-size:10px;color:var(--faint);letter-spacing:.05em;margin-bottom:1px}
+.th .tx b{font-weight:600;color:var(--ink)}
+
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 12px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:14px}
+.mg .k{font-size:10px;color:var(--faint);letter-spacing:.05em;margin-bottom:2px}
+.mg .v{font-size:12px;color:var(--ink2);font-weight:500}
+.mg .v.mono{font-family:var(--mono);font-size:10.5px;font-weight:400;word-break:break-all}
+
+.conf-box{margin-bottom:14px}
+.conf-row{display:flex;align-items:baseline;gap:6px;margin-bottom:5px}
+.conf-row b{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.conf-row span{font-size:10.5px;color:var(--muted)}
+.cbar{height:4px;border-radius:99px;background:var(--line);overflow:hidden}
+.cbar i{display:block;height:100%;border-radius:99px}
+.tierline{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6}
+
+.note{font-size:11.5px;line-height:1.7;color:var(--muted);background:var(--bg);border-radius:8px;padding:9px 11px;margin-bottom:12px}
+.note b{color:var(--ink2);font-weight:500}
+.note.warn{background:var(--warnSoft)}
+.basis{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.basis b{color:var(--ink2);font-weight:500;font-family:var(--mono);font-size:10.5px}
+
+/* ===== V3 提报 ===== */
+.top-new{height:29px;padding:0 12px;font-size:11.5px;margin-right:10px;gap:5px}
+.btn.pri.top-new{background:#fff;color:#16469e;border-color:#fff;box-shadow:0 1px 3px rgba(6,26,60,.18)}
+.btn.pri.top-new:hover{background:#eaf1fd;border-color:#eaf1fd;color:#0f3a80}
+#v-loc{position:relative}
+.pickbar{position:absolute;z-index:40;left:50%;top:12px;transform:translateX(-50%);display:none;align-items:center;gap:12px;
+  background:var(--brand);color:#fff;font-size:12px;padding:8px 9px 8px 15px;border-radius:99px;box-shadow:0 6px 18px rgba(28,79,90,.26);white-space:nowrap}
+.pickbar.on{display:flex}
+.pickbar button{background:rgba(255,255,255,.18);color:#fff;border:none;font-size:11.5px;padding:4px 11px;border-radius:99px;font-family:inherit}
+.canvas.picking{cursor:crosshair}
+.canvas.picking::after{content:'';position:absolute;inset:6px;border:1.5px dashed var(--brand2);border-radius:6px;pointer-events:none}
+
+.form{display:flex;flex-direction:column;gap:13px}
+.frow{display:flex;flex-direction:column;gap:6px}
+.fl{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.fl em{color:var(--bad);font-style:normal}
+.fbox{width:100%;border:1px solid var(--line2);border-radius:8px;padding:9px 10px;font-size:12px;background:var(--surface);color:var(--ink);font-family:inherit;line-height:1.6}
+select.fbox{height:34px;padding:0 9px}
+textarea.fbox{min-height:70px;resize:vertical}
+.fchips{display:flex;flex-wrap:wrap;gap:6px}
+.fchip{height:28px;padding:0 11px;border-radius:99px;border:1px solid var(--line2);background:var(--surface);font-size:11.5px;color:var(--ink2);font-family:inherit}
+.fchip.on{background:var(--brandSoft);border-color:var(--brand2);color:var(--brand)}
+.route{display:flex;align-items:flex-start;gap:7px;background:var(--brandSoft);color:var(--brand);border-radius:8px;padding:9px 11px;font-size:11.5px;line-height:1.55}
+.route b{font-weight:500}
+.photos{display:flex;gap:7px;flex-wrap:wrap}
+.thumb{width:68px;height:52px;border-radius:6px;object-fit:cover;border:1px solid var(--line2);background:var(--bg)}
+.ph-add{width:68px;height:52px;border:1px dashed var(--line2);border-radius:6px;display:grid;place-items:center;text-align:center;font-size:10px;line-height:1.3;color:var(--muted);background:var(--bg);font-family:inherit}
+.tl{margin:2px 0 14px}
+.tl-i{display:flex;gap:9px;position:relative;padding-bottom:10px}
+.tl-i:last-child{padding-bottom:0}
+.tl-i::before{content:'';position:absolute;left:4px;top:13px;bottom:0;width:1px;background:var(--line)}
+.tl-i:last-child::before{display:none}
+.tl-d{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:3px;background:var(--line2)}
+.tl-i.done .tl-d{background:var(--brand2)}
+.tl-i.now .tl-d{background:var(--brand);box-shadow:0 0 0 3px var(--brandSoft)}
+.tl-tx{font-size:11.5px;line-height:1.5;color:var(--faint)}
+.tl-tx b{color:var(--ink2);font-weight:500}
+.tl-tx span{display:block;font-size:10.5px;color:var(--faint);margin-top:1px}
+.src{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:var(--muted)}
+.src i{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+.acts{display:flex;gap:7px;margin-bottom:16px}
+.btn{
+  height:34px;padding:0 14px;border-radius:7px;font-size:12px;font-weight:500;
+  border:1px solid var(--line2);background:var(--surface);transition:.14s;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+}
+.btn:hover{border-color:var(--ink2);background:#fbfcfc}
+.btn:active{transform:scale(.985)}
+.btn.pri{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn.pri:hover{background:var(--brand2);border-color:var(--brand2)}
+.btn.ghost{border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{background:var(--bg);color:var(--ink2)}
+.btn.sm{height:28px;padding:0 10px;font-size:11px}
+.btn.full{flex:1}
+.btn-row{display:flex;gap:7px;margin-bottom:14px}
+.btn-row .btn{flex:1}
+
+/* compare */
+.cmp{border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:14px}
+.cmp-h{padding:8px 11px;background:var(--okSoft);display:flex;align-items:center;gap:6px;font-size:11.5px;color:#1f5c45;font-weight:500}
+.cmp-imgs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.cmp-im{background:#fff;position:relative}
+.cmp-im svg{display:block;width:100%;height:auto}
+.cmp-lb{position:absolute;left:6px;top:5px;font-size:9px;font-family:var(--mono);color:var(--muted);background:rgba(255,255,255,.85);padding:1px 4px;border-radius:3px}
+.cmp-f{padding:8px 11px;font-size:11px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line)}
+
+.anchor{background:var(--bg);border-radius:8px;padding:10px 11px;margin-bottom:12px}
+.anchor .k{font-size:10px;color:var(--faint);letter-spacing:.05em;margin-bottom:4px}
+.anchor .row{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:10.5px;color:var(--ink2);py:1px;padding:1px 0}
+.anchor .row span:first-child{color:var(--faint)}
+
+.queue{border-top:1px solid var(--line);padding-top:12px}
+.queue .k{font-size:10px;color:var(--faint);letter-spacing:.05em;margin-bottom:7px}
+.qitem{display:flex;align-items:center;gap:7px;padding:5px 0;font-size:11.5px;color:var(--muted);cursor:pointer;border-radius:5px}
+.qitem:hover{color:var(--ink2)}
+.qitem .dot{width:6px;height:6px;border-radius:50%;flex:0 0 6px}
+.qitem .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qitem.on{color:var(--brand);font-weight:500}
+
+/* ---------- consistency view ---------- */
+#v-cons.on{grid-template-columns:1fr}
+.cons{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.cons-h{padding:18px 24px 0;flex:0 0 auto}
+.cons-h h2{font-size:16px;font-weight:600;margin-bottom:3px;position:relative;padding-left:11px}
+.cons-h h2::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:3px;border-radius:2px;background:linear-gradient(180deg,var(--brand2),var(--brand))}
+.cons-h p{font-size:12px;color:var(--muted);margin-bottom:16px}
+.rate{display:flex;gap:26px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.rate-big{display:flex;align-items:baseline;gap:5px}
+.rate-big b{font-size:30px;font-weight:600;letter-spacing:-.03em;color:var(--brand)}
+.rate-big span{font-size:11.5px;color:var(--muted)}
+.rate-bars{display:flex;gap:20px;flex:1;min-width:260px}
+.rb{flex:1}
+.rb-t{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}
+.rb-b{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.rb-b i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brandDeep2),var(--brand2))}
+.cons-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);padding:0 24px;flex:0 0 auto}
+.ctab{font-size:12.5px;color:var(--muted);padding:8px 12px;border-bottom:2px solid transparent;transition:.15s;display:flex;align-items:center;gap:6px}
+.ctab.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:500}
+.ctab .n{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.cons-list{flex:1;min-height:0;overflow:auto;padding:16px 24px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;align-content:start}
+.diff{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:13px 14px;transition:.15s}
+.diff:hover{border-color:var(--line2);box-shadow:0 2px 8px rgba(20,24,28,.04)}
+.diff-t{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.diff-name{font-size:13px;font-weight:500;line-height:1.5}
+.diff-loc{font-size:11px;color:var(--faint);margin-bottom:9px}
+.vs{display:grid;grid-template-columns:1fr 22px 1fr;align-items:center;gap:4px;margin-bottom:9px}
+.vs-side{background:var(--bg);border-radius:6px;padding:6px 8px}
+.vs-side .k{font-size:9.5px;color:var(--faint);letter-spacing:.04em;margin-bottom:1px}
+.vs-side .v{font-family:var(--mono);font-size:11px;color:var(--ink2)}
+.vs-side.bad{background:var(--badSoft)}
+.vs-side.bad .v{color:var(--bad)}
+.vs-mid{text-align:center;font-size:14px;color:var(--faint)}
+.diff-f{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.diff-f .btn{margin-left:auto}
+
+/* ---------- flow view ---------- */
+#v-flow.on{grid-template-columns:1fr}
+.flow{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.flow-h{padding:18px 24px 14px;flex:0 0 auto;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.flow-h h2{font-size:16px;font-weight:600;margin-bottom:3px;position:relative;padding-left:11px}
+.flow-h h2::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:3px;border-radius:2px;background:linear-gradient(180deg,var(--brand2),var(--brand))}
+.flow-h p{font-size:12px;color:var(--muted)}
+.flow-h .sp{margin-left:auto}
+.board{flex:1;min-height:0;overflow:auto;padding:0 20px 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;align-content:start}
+.bfilters{display:flex;gap:6px;padding:0 20px 12px;flex-wrap:wrap}
+.bf{border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:11.5px;
+  padding:4px 11px;border-radius:99px;cursor:pointer;transition:.15s;font-family:inherit}
+.bf:hover{border-color:var(--line2);color:var(--ink2)}
+.bf.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.bf .c{font-family:var(--mono);font-size:10px;opacity:.7;margin-left:4px}
+.col-h2{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);font-weight:500;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.col-h2 .n{font-family:var(--mono);font-size:10px;color:var(--faint);background:var(--bg);padding:1px 6px;border-radius:99px}
+.col-h2 .sub{font-size:10px;color:var(--faint);font-family:var(--mono);margin-left:-2px}
+.col-h2 .bar{width:3px;height:13px;border-radius:2px;margin-right:1px}
+.col-empty{font-size:10.5px;color:var(--faint);padding:10px 2px;border:1px dashed var(--line);border-radius:4px;text-align:center}
+.fcard{
+  background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:11px 12px;margin-bottom:9px;
+  transition:.15s;cursor:pointer;
+}
+.fcard:hover{border-color:var(--line2);box-shadow:0 2px 8px rgba(20,24,28,.05);transform:translateY(-1px)}
+.fcard-t{font-size:12.5px;line-height:1.5;margin-bottom:7px;font-weight:500}
+.fcard-f{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted);flex-wrap:wrap}
+.fcard-f .who{color:var(--ink2)}
+.fcard-f .ov{color:var(--bad);font-weight:500}
+.fcard-f .ok{color:var(--ok)}
+.fcard-f .ds{color:#7a5ea8;font-weight:500}
+.fca{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.fca .btn{flex:0 0 auto}
+.fca .hint{font-size:10.5px;color:var(--faint);line-height:1.4}
+.sq{width:22px;height:22px;border-radius:5px;display:grid;place-items:center;font-size:9px;font-weight:600;color:#fff;flex:0 0 22px}
+
+/* toast + phone */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);opacity:0;
+  background:var(--ink);color:#fff;font-size:12.5px;padding:9px 16px;border-radius:8px;
+  transition:.22s;pointer-events:none;z-index:200;max-width:88vw;text-align:center;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.phone-mask{
+  position:fixed;inset:0;background:rgba(20,24,28,.55);display:none;place-items:center;z-index:150;
+  backdrop-filter:blur(3px);
+}
+.phone-mask.on{display:grid}
+.phone{
+  width:390px;height:800px;max-height:92vh;background:#0d1113;border-radius:38px;padding:9px;
+  box-shadow:0 24px 70px rgba(0,0,0,.4);position:relative;
+}
+.phone iframe{width:100%;height:100%;border:none;border-radius:30px;background:#fff;display:block}
+.phone-x{
+  position:absolute;right:-42px;top:0;width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;font-size:15px;
+}
+.phone-x:hover{background:rgba(255,255,255,.28)}
+
+.mp-seg{display:none}
+
+/* ---------- mobile ---------- */
+@media (max-width:880px){
+  .top{flex-wrap:nowrap;gap:8px;padding:0 10px;height:50px;flex:0 0 50px;overflow:hidden}
+  .brand small,.proj span,.sep,.roles,.icon-btn.pc{display:none}
+  .proj{font-size:12px;max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tabs{margin-left:auto}
+  .tab{padding:4px 9px;font-size:12px}
+  .tab .n{display:none}
+  .insight{height:auto;flex:0 0 auto;padding:6px 6px;gap:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .insight::-webkit-scrollbar{display:none}
+  .ins{padding:0 9px;flex:0 0 auto}
+  .ins .k{font-size:10.5px}
+  .ins .v{font-size:14px}
+  .ins .u{display:none}
+  .ins .tip{display:none}
+  .insight .degrade{display:none}
+  /* 手机只给一个窗口：图纸 / 模型切换，不做上下叠两个 */
+  #v-loc.on{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden;
+    padding-bottom:58vh}
+  body.sheet-off #v-loc.on{padding-bottom:46px}
+  .panel.mini{height:46px}
+  .panel.mini .panel-b{display:none}
+  .panel.mini .panel-h::before{top:8px}
+  .panel.mini .panel-x{color:var(--brand)}
+  #v-loc .pane.mdl{display:none}
+  body[data-mp="mdl"] #v-loc .pane.dwg{display:none}
+  body[data-mp="mdl"] #v-loc .pane.mdl{display:flex}
+  .mp-seg{display:flex;position:fixed;right:10px;bottom:calc(58vh + 10px);z-index:70;
+    background:#fff;border:1px solid var(--line2);border-radius:9px;padding:2px;
+    box-shadow:0 2px 10px rgba(15,27,45,.14);transition:bottom .25s}
+  body.sheet-off .mp-seg{bottom:56px}
+  .mp-seg button{font-size:11.5px;color:var(--muted);padding:4px 10px;border-radius:7px}
+  .mp-seg button.on{background:var(--brand);color:#fff}
+  .panel-x{display:block}
+  .panel-h .tag{position:static!important;margin-left:8px}
+  .pane + .pane{border-left:none;border-top:1px solid var(--line)}
+  .pane-body{padding:6px 6px 10px;align-items:center}
+  .canvas{max-width:100%}
+  .panel{position:fixed;left:0;right:0;bottom:0;top:auto;height:58vh;border-left:none;border-top:1px solid var(--line);
+    border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(20,24,28,.16);transform:translateY(100%);transition:transform .25s;z-index:60}
+  .panel.up{transform:translateY(0)}
+  .panel-h{border-radius:16px 16px 0 0}
+  .panel-h::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:34px;height:3px;border-radius:99px;background:var(--line2)}
+  .panel-h{position:relative;justify-content:center}
+  .panel-h .tag{position:absolute;right:14px}
+  .board{grid-template-columns:1fr;padding:0 14px 40px}
+  .cons-h,.cons-tabs,.cons-list,.flow-h{padding-left:14px;padding-right:14px}
+  .cons-list{grid-template-columns:1fr;padding:14px}
+  .rate{gap:14px}
+  .rate-big b{font-size:24px}
+  .phone,.phone-mask{display:none!important}
+  .top-new{padding:0 9px;gap:0;font-size:0;margin-right:6px}
+  .pickbar{font-size:11px;padding:7px 8px 7px 12px;max-width:calc(100% - 24px);white-space:normal}
+}
+@media (max-width:560px){
+  .proj{display:none}
+  .tab{padding:4px 7px;font-size:11.5px;gap:0}
+  .brand{font-size:13px}
+  .brand-mark{width:23px;height:23px}
+  .btn.pri.top-new{height:27px;padding:0 8px}
+}
+</style>
+</head>
+<body data-role="owner" data-mp="dwg">
+
+<header class="top">
+  <div class="brand">
+    <span class="brand-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7.4"/>
+        <path d="M7.9 11.1l2.3 2.3 4.2-4.5" stroke-width="2.1"/>
+        <path d="M15.9 15.9l4.6 4.6"/>
+      </svg>
+    </span>
+    <span class="wm">bim<i>Q</i><small>CLOSE THE LOOP</small></span>
+  </div>
+  <div class="sep"></div>
+  <div class="proj">朝阳站枢纽商业综合体 <span>/ 机电 / 5F</span></div>
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-v="loc">图纸与模型 <span class="n" id="t-loc">8</span></button>
+    <button class="tab" data-v="cons">图模核对 <span class="n" id="t-cons">7</span></button>
+    <button class="tab" data-v="flow">问题流转 <span class="n" id="t-flow">8</span></button>
+  </div>
+  <div class="roles" id="roles">
+    <button class="role on" data-r="owner">甲方</button>
+    <button class="role" data-r="builder">施工方</button>
+    <button class="role" data-r="designer">设计院</button>
+  </div>
+  <button class="btn pri top-new" id="newBtn">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    提报问题
+  </button>
+  <button class="icon-btn pc" id="phoneBtn" title="手机端预览">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/>
+    </svg>
+  </button>
+  <div class="avatar">梁</div>
+</header>
+
+<div class="insight" id="insight">
+  <div class="ins hot"><span class="k" id="k1">未闭合</span><span class="v" id="v1">6</span><span class="u" id="u1">条</span></div>
+  <div class="ins warn"><span class="k" id="k2">超期</span><span class="v" id="v2">2</span><span class="u" id="u2">条</span></div>
+  <div class="ins"><span class="k" id="k3">最堵在</span><span class="v" id="v3" style="font-size:13px">设计院·机电</span><span class="u" id="u3">3 条</span></div>
+  <div class="ins good"><span class="k" id="k4">图模一致率</span><span class="v" id="v4">94.2</span><span class="u" id="u4">%</span></div>
+  <div class="ins"><span class="k" id="k5">本周新增</span><span class="v" id="v5">3</span><span class="u" id="u5">条</span><span class="tip" id="tp5">AI 自动判定</span></div>
+  <div class="degrade">
+    <span id="dgLabel">图模双窗</span>
+    <button class="switch on" id="dgSwitch" aria-label="切换仅图纸模式"><i></i></button>
+  </div>
+</div>
+
+<main>
+  <!-- ========= 定位视图 ========= -->
+  <section class="view on" id="v-loc">
+    <div class="pickbar" id="pickbar">
+      <span>在图纸上点选问题位置，点完自动生成问题卡片</span>
+      <button id="pickCancel">取消</button>
+    </div>
+    <div class="pane dwg">
+      <div class="pane-h">
+        <span class="badge">CAD</span> 图纸
+        <span class="meta" id="sheetMeta">M-5F-01 · V3</span>
+        <div class="tools">
+          <button class="tbtn on" data-layer="all">综合</button>
+          <button class="tbtn" data-layer="hvac">暖通</button>
+          <button class="tbtn" data-layer="elec">电气</button>
+        </div>
+      </div>
+      <div class="pane-body">
+        <div class="canvas" id="drawCanvas">
+          <svg viewBox="0 0 640 430" preserveAspectRatio="xMidYMid meet" aria-label="机电综合平面图">
+            <defs>
+              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M20 0H0V20" fill="none" stroke="#eef2f9" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="640" height="430" fill="url(#grid)"/>
+            <!-- 轴网 -->
+            <g stroke="#dbe4f2" stroke-width="1">
+              <line x1="60" y1="50" x2="60" y2="390"/><line x1="180" y1="50" x2="180" y2="390"/>
+              <line x1="300" y1="50" x2="300" y2="390"/><line x1="420" y1="50" x2="420" y2="390"/>
+              <line x1="540" y1="50" x2="540" y2="390"/>
+              <line x1="60" y1="80" x2="580" y2="80"/><line x1="60" y1="180" x2="580" y2="180"/>
+              <line x1="60" y1="280" x2="580" y2="280"/><line x1="60" y1="380" x2="580" y2="380"/>
+            </g>
+            <g font-family="monospace" font-size="8" fill="#7c8ba3">
+              <text x="56" y="46">1</text><text x="176" y="46">2</text><text x="296" y="46">3</text>
+              <text x="416" y="46">4</text><text x="536" y="46">5</text>
+              <text x="44" y="84">A</text><text x="44" y="184">B</text><text x="44" y="284">C</text><text x="44" y="384">D</text>
+            </g>
+            <!-- 墙体 -->
+            <g fill="none" stroke="#8fa9cd" stroke-linejoin="miter">
+              <rect x="60" y="80" width="520" height="300" stroke-width="6"/>
+              <rect x="60" y="80" width="520" height="300" stroke-width="1.5" stroke="#f2f5fa"/>
+            </g>
+            <line x1="60" y1="230" x2="580" y2="230" stroke="#b8c9e2" stroke-width="4"/>
+            <line x1="300" y1="80" x2="300" y2="230" stroke="#b8c9e2" stroke-width="3"/>
+            <line x1="420" y1="230" x2="420" y2="380" stroke="#b8c9e2" stroke-width="3"/>
+            <!-- 走廊 -->
+            <rect x="60" y="196" width="520" height="34" fill="#eef3fb"/>
+            <text x="66" y="218" font-size="8" fill="#8b9ab0" font-family="monospace">CORRIDOR 4.2m</text>
+            <!-- 柱 -->
+            <g fill="#d9e3f3" stroke="#a8bcd8" stroke-width="1">
+              <rect x="112" y="132" width="18" height="18"/><rect x="232" y="132" width="18" height="18"/>
+              <rect x="352" y="132" width="18" height="18"/><rect x="472" y="132" width="18" height="18"/>
+              <rect x="112" y="292" width="18" height="18"/><rect x="232" y="292" width="18" height="18"/>
+              <rect x="352" y="292" width="18" height="18"/><rect x="472" y="292" width="18" height="18"/>
+            </g>
+            <!-- 风管 -->
+            <g fill="#dbe8fb" stroke="#7f9fd0" stroke-width="1.1">
+              <rect x="150" y="146" width="330" height="24" rx="1"/>
+              <rect x="88" y="240" width="24" height="130" rx="1"/>
+              <rect x="248" y="318" width="120" height="20" rx="1"/>
+            </g>
+            <g font-size="7.5" fill="#6f8099" font-family="monospace">
+              <text x="156" y="161">SA 1200×400</text>
+              <text x="92" y="330" transform="rotate(-90 92 330)">EA 800×320</text>
+            </g>
+            <!-- 桥架 -->
+            <g fill="none" stroke="#7e93b3" stroke-width="1.4" stroke-dasharray="7 3">
+              <path d="M88 210 H480"/>
+              <path d="M480 210 V330 H420"/>
+            </g>
+            <text x="300" y="206" font-size="7.5" fill="#7c8ba3" font-family="monospace">强电桥架 400×100</text>
+            <!-- 水管 -->
+            <g fill="none" stroke="#6f88b0" stroke-width="1.8">
+              <path d="M120 260 H460 V300"/>
+              <path d="M120 272 H440"/>
+            </g>
+            <!-- 设备 -->
+            <g fill="#cfe0f7" stroke="#9db6d8" stroke-width="1">
+              <rect x="490" y="250" width="60" height="46" rx="2"/>
+            </g>
+            <text x="496" y="277" font-size="7.5" fill="#7c8ba3" font-family="monospace">PAU-5F-01</text>
+          </svg>
+          <div class="sheet-tag">M-5F-01 · V3</div>
+          <div class="legend">
+            <span><i style="background:#b03a2e"></i>严重</span>
+            <span><i style="background:#a76a12"></i>一般</span>
+            <span><i style="background:#94a1b5"></i>已闭合</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane mdl" id="modelPane">
+      <div class="pane-h">
+        <span class="badge">RVT</span> 模型
+        <span class="meta">机电-5F.ifc · 构件 12,840</span>
+        <div class="tools">
+          <button class="tbtn on" data-view="iso">轴测</button>
+          <button class="tbtn" data-view="top">俯视</button>
+        </div>
+      </div>
+      <div class="pane-body">
+        <div class="canvas" id="modelCanvas">
+          <svg viewBox="0 0 640 430" preserveAspectRatio="xMidYMid meet" aria-label="模型轴测视图" id="modelSvg"></svg>
+          <div class="sheet-tag">MEP-5F · LOD350</div>
+          <div class="legend">
+            <span><i style="background:#b03a2e"></i>严重</span>
+            <span><i style="background:#a76a12"></i>一般</span>
+            <span><i style="background:#94a1b5"></i>已闭合</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="panel" id="panel">
+      <div class="panel-h">问题卡片 <span class="tag" id="cardTag">—</span>
+        <button class="panel-x" id="panelX">收起</button>
+      </div>
+      <div class="panel-b" id="cardBody"></div>
+    </aside>
+    <div class="mp-seg" id="mpSeg">
+      <button class="on" data-mp="dwg">图纸</button>
+      <button data-mp="mdl">模型</button>
+    </div>
+  </section>
+
+  <!-- ========= 一致性视图 ========= -->
+  <section class="view" id="v-cons">
+    <div class="cons">
+      <div class="cons-h">
+        <h2>图模版本核对</h2>
+        <p>以模型为基准校验图纸，容差 50mm。用途从「发现问题」改为「核对版次」——设计师说改完了，改的是模型还是图，这里对得上。</p>
+        <div class="rate">
+          <div class="rate-big"><b id="rateBig">94.2</b><span>% 综合一致率（按构件加权）</span></div>
+          <div class="rate-bars">
+            <div class="rb"><div class="rb-t"><span>几何位置</span><span id="rb1">96.1%</span></div><div class="rb-b"><i id="rb1b" style="width:96%"></i></div></div>
+            <div class="rb"><div class="rb-t"><span>构件数量</span><span id="rb2">91.8%</span></div><div class="rb-b"><i id="rb2b" style="width:92%"></i></div></div>
+            <div class="rb"><div class="rb-t"><span>信息属性</span><span id="rb3">90.2%</span></div><div class="rb-b"><i id="rb3b" style="width:90%"></i></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="cons-tabs" id="consTabs">
+        <button class="ctab on" data-c="all">全部 <span class="n">7</span></button>
+        <button class="ctab" data-c="geo">几何位置 <span class="n">3</span></button>
+        <button class="ctab" data-c="count">构件数量 <span class="n">2</span></button>
+        <button class="ctab" data-c="info">信息属性 <span class="n">2</span></button>
+      </div>
+      <div class="cons-list" id="consList"></div>
+    </div>
+  </section>
+
+  <!-- ========= 闭环视图 ========= -->
+  <section class="view" id="v-flow">
+    <div class="flow">
+      <div class="flow-h">
+        <div>
+          <h2>问题流转</h2>
+          <p>现场问题多数由<b>施工方</b>在图上提报（含现场照片），甲方提报的多是「要求没被满足」。待受理 → 处理中 → <b>两条并列出口</b>：改图交回（待复核）／只给说明（已回复）→ 已闭合；提报人不接受转争议，由甲方裁定。判<b>不成立</b>的走「已驳回」，<b>不算闭合、不进闭环率</b>，但留痕可查、可重开。设计院只负责交回，闭合权在提报人。当前角色：<b id="roleNow">甲方</b></p>
+        </div>
+        <div class="sp"></div>
+        <button class="btn sm" id="bcfBtn">导出 BCF 2.1</button>
+        <button class="btn sm pri" id="remindBtn">催办超期项</button>
+      </div>
+      <div class="bfilters" id="bfilters"></div>
+      <div class="board" id="board"></div>
+    </div>
+  </section>
+</main>
+
+<div class="phone-mask" id="phoneMask">
+  <div class="phone">
+    <button class="phone-x" id="phoneClose">×</button>
+    <iframe id="phoneFrame" title="手机端预览"></iframe>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 数据：一套锚点，多端渲染 ================= */
+const ITEMS = [
+  {id:'Q-001',kind:'issue',sev:'h',tier:'auto',conf:0.98,st:'open',over:0,
+   title:'风管和桥架撞在一起了，现场装不进去',
+   what:'走廊东段，强电桥架（400×100）与空调水 DN150 管重叠 42mm',
+   why:'违反 GB/T 51235 模型质量要求，按此施工必然返工',
+   who:'设计院 · 机电 张工',owner:'设计院·机电',disc:'暖通/电气',floor:'5F',
+   rule:'R-031 硬碰撞检测',basis:'GB/T 51235-2017',
+   dx:46,dy:33,p:[4.2,6.5,3.4],fig:'DWG#4F2A-118',comp:'Revit#1284733',
+   photos:["data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27160%27 height=%27110%27%3E%3Crect width=%27160%27 height=%27110%27 fill=%27%23d9d5c8%27/%3E%3Ctext x=%2780%27 y=%2750%27 font-size=%2712%27 text-anchor=%27middle%27 fill=%27%236f6d64%27%3E%E7%8E%B0%E5%9C%BA%E7%85%A7%E7%89%87%3C/text%3E%3C/svg%3E"]},
+
+  {id:'Q-002',kind:'issue',sev:'h',tier:'auto',conf:0.96,st:'open',over:3,
+   title:'车道下面只剩 2.05 米，车过不去',
+   what:'B1-C 区车道正下方，桥架底距地面净高 2.05m',
+   why:'低于车库 2.20m 净高限值 150mm，消防车无法通行',
+   who:'设计院 · 机电 李工',owner:'设计院·机电',disc:'电气',floor:'B1',
+   rule:'R-012 净高最小值',basis:'GB 50352-2019 6.3.4',
+   dx:22,dy:60,p:[1.8,3.2,2.0],fig:'DWG#3B12-044',comp:'Revit#1274901'},
+
+  {id:'Q-003',kind:'issue',sev:'h',tier:'pending',conf:0.62,st:'open',over:1,
+   title:'风管穿墙没装防火阀，消防验收过不了',
+   what:'3F 排烟风管穿越防火分区隔墙处，未见 70℃ 防火阀',
+   why:'违反 GB 50016 第 9.3.11 条，消防验收直接不通过',
+   who:'设计院 · 暖通 王工',owner:'设计院·暖通',disc:'暖通',floor:'3F',
+   rule:'R-048 防火阀设置位置',basis:'GB 50016-2014 9.3.11',
+   dx:66,dy:26,p:[7.2,4.0,3.6],fig:'DWG#5C08-210',comp:'Revit#1290112'},
+
+  {id:'Q-004',kind:'issue',sev:'h',tier:'pending',conf:0.74,st:'review',over:0,
+   title:'这根立管穿墙，结构图上没留洞',
+   what:'DN150 立管穿越 4F 剪力墙，结构图 X-402 该位置无洞口',
+   why:'现场只能后凿，剪力墙后凿属重大结构风险，监理会停工',
+   who:'结构 · 设计院 刘工',owner:'结构·设计院',disc:'给排水',floor:'4F',
+   rule:'R-055 跨专业洞口比对',basis:'GB/T 51235-2017',
+   dx:78,dy:55,p:[8.6,2.6,1.2],fig:'DWG#6D21-307',comp:'Revit#1301776',
+   photos:["data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27160%27 height=%27110%27%3E%3Crect width=%27160%27 height=%27110%27 fill=%27%23d9d5c8%27/%3E%3Ctext x=%2780%27 y=%2750%27 font-size=%2712%27 text-anchor=%27middle%27 fill=%27%236f6d64%27%3E%E7%8E%B0%E5%9C%BA%E7%85%A7%E7%89%87%3C/text%3E%3C/svg%3E"]},
+
+  {id:'Q-005',kind:'issue',sev:'m',tier:'auto',conf:0.91,st:'open',over:0,
+   title:'机组旁边只剩 0.65 米，人进不去检修',
+   what:'B2 冷冻机房离心机组侧面距墙 0.65m',
+   why:'低于维护要求 0.80m，设备保养时需拆管',
+   who:'设计院 · 机电 李工',owner:'设计院·机电',disc:'暖通',floor:'B2',
+   rule:'R-026 检修通道净宽',basis:'GB 50365-2019 / 厂商手册',
+   dx:15,dy:30,p:[1.2,7.6,0.9],fig:'DWG#2A05-018',comp:'Revit#1261204'},
+
+  {id:'Q-006',kind:'issue',sev:'m',tier:'auto',conf:0.88,st:'closed',over:0,
+   title:'喷淋管支架间距 4.2 米，超了',
+   what:'2F 消防水管 DN100 支架间距 4.2m',
+   why:'超过 DN100 允许的 3.5m，管道会下垂',
+   who:'施工总包 · 现场技术',owner:'施工总包',disc:'给排水',floor:'2F',
+   rule:'R-063 支吊架最大间距',basis:'GB 50261-2017 5.1.15',
+   dx:36,dy:72,p:[3.0,2.2,3.8],fig:'DWG#4B11-155',comp:'Revit#1278220'},
+
+  {id:'Q-007',kind:'issue',sev:'m',tier:'pending',conf:0.79,st:'open',over:0,
+   title:'冷凝水排不出去，会滴水',
+   what:'6F 风机盘管冷凝水管坡度 0.006，且需上翻绕梁',
+   why:'低于 0.008 要求，凝结水积在管内倒灌吊顶',
+   who:'设计院 · 暖通 王工',owner:'设计院·暖通',disc:'暖通',floor:'6F',
+   rule:'R-071 冷凝水坡度',basis:'GB 50736-2012 8.5.7',
+   dx:58,dy:80,p:[6.0,7.0,3.2],fig:'DWG#7E33-092',comp:'Revit#1302908'},
+
+  {id:'Q-008',kind:'issue',sev:'h',tier:'reject',conf:0.31,st:'open',over:0,
+   title:'图纸和模型不是同一版，这份我不判',
+   what:'图签 V3 与模型 V5 相差两个版本，构件数差 340 个',
+   why:'基准不确定，任何判定结论都不可靠',
+   who:'甲方 · BIM 管理',owner:'甲方·BIM管理',disc:'综合',floor:'6F',
+   rule:'—（无法判定）',basis:'图签 V3 / 模型 V5 不同步',
+   dx:84,dy:74,p:[8.8,7.2,3.0],fig:'DWG#7E33-092',comp:'Revit#1302955'},
+
+  /* ---- 甲方巡检提报、派给施工方整改的一条（用来演示施工方"待我整改"） ---- */
+  {id:'Q-009',kind:'issue',sev:'m',tier:'manual',conf:0,st:'open',over:2,
+   title:'穿墙套管没做封堵，回填后渗水',
+   what:'B1 外墙 DN200 套管与管道间隙未封堵，回填土完成后雨季渗水',
+   why:'甲方巡检发现，属施工遗留；防水验收会直接扣项',
+   who:'施工总包 · 现场技术',owner:'施工总包',disc:'给排水',floor:'B1',
+   rule:'—（甲方巡检提报）',basis:'GB 50242-2002 3.3.13',
+   dx:52,dy:58,p:[6.4,6.2,0.5],fig:'DWG#3B12-071',comp:'Revit#1263345',
+   src:'owner'},
+
+  /* ---- 一致性差异 ---- */
+  {id:'C-01',kind:'cons',cat:'geo',sev:'h',title:'走廊水管标高对不上',loc:'5F 走廊 · DN150 空调水',
+   figV:'3.450 m',modV:'3.380 m',delta:'偏 70mm > 容差 50',tag:'b',
+   dx:50,dy:44,p:[9.0,1.0,3.4],owner:'设计院·机电',fig:'DWG#4F2A-140',comp:'Revit#1284602'},
+  {id:'C-02',kind:'cons',cat:'geo',sev:'m',title:'设备基础定位偏移',loc:'B1 冷冻机房 · 基础',
+   figV:'X=12.400',modV:'X=12.520',delta:'偏 120mm > 容差 50',tag:'b',
+   dx:18,dy:44,p:[1.4,5.0,0.4],owner:'设计院·机电',fig:'DWG#3B12-022',comp:'Revit#1260488'},
+  {id:'C-03',kind:'cons',cat:'geo',sev:'m',title:'桥架折点位置不符',loc:'3F 桥架 · 东段折点',
+   figV:'Y=8.200',modV:'Y=8.135',delta:'偏 65mm > 容差 50',tag:'b',
+   dx:70,dy:34,p:[7.0,5.6,3.5],owner:'设计院·电气',fig:'DWG#5C08-118',comp:'Revit#1291044'},
+
+  {id:'C-04',kind:'cons',cat:'count',sev:'h',title:'桥架数量多出 3 段',loc:'3F 桥架 · 全层统计',
+   figV:'42 段',modV:'45 个',delta:'多 3 个（疑似重复建模）',tag:'b',
+   dx:64,dy:20,p:[5.4,2.6,3.6],owner:'设计院·电气',fig:'DWG#5C08-118',comp:'Revit#1291007'},
+  {id:'C-05',kind:'cons',cat:'count',sev:'h',title:'喷淋支管少建 2 路',loc:'2F 喷淋 · 西区',
+   figV:'18 路',modV:'16 路',delta:'少 2 路（漏建）',tag:'b',
+   dx:30,dy:64,p:[2.6,6.0,3.6],owner:'设计院·给排水',fig:'DWG#4B11-155',comp:'Revit#1278310'},
+
+  {id:'C-06',kind:'cons',cat:'info',sev:'m',title:'设备编号规则不一致',loc:'5F 空调机组 PAU-5F-01',
+   figV:'AC-5F-12',modV:'AC-05-012',delta:'命名规则不统一，无法关联台账',tag:'n',
+   dx:86,dy:62,p:[8.2,4.4,1.2],owner:'设计院·暖通',fig:'DWG#4F2A-201',comp:'Revit#1285010'},
+  {id:'C-07',kind:'cons',cat:'info',sev:'m',title:'风管规格标注空缺',loc:'5F 送风管 · 主段',
+   figV:'（空）',modV:'1200×400',delta:'图纸未标注规格，施工无法下料',tag:'b',
+   dx:38,dy:38,p:[4.2,3.6,3.7],owner:'设计院·暖通',fig:'DWG#4F2A-201',comp:'Revit#1285402'}
+];
+
+/* ===== 施工方视角专用：现场怎么做 / 卡在什么工序 / 剩余天数 ===== */
+const FIELD={
+ 'Q-001':{do:'桥架抬高 50mm 上翻，或风管改 400×320 变径绕行。先做 3m 样板段报监理确认，再批量施工。',
+          lim:'影响 5F 东区吊顶封板，封板后返工要拆吊顶。',zone:'5F 东区 · 吊顶封板前',due:4},
+ 'Q-002':{do:'桥架改贴梁底并穿梁套管，或整体下调一个桥架层级。降板处需结构确认开洞位置。',
+          lim:'地坪一旦浇筑，桥架标高无法再调。',zone:'B1-C 区 · 地坪浇筑前',due:6},
+ 'Q-003':{do:'穿墙处补装 70℃ 防火阀，阀前 2m 风管做防火包覆。节点做法需设计院补出节点图后再施工。',
+          lim:'隐蔽作业，需与吊顶单位穿插，验收前必须完成。',zone:'3F · 消防验收前',due:12},
+ 'Q-004':{do:'禁止现场后凿。方案 A：设计补开洞图并做粘钢加固；方案 B：立管改走邻近管井，约 3 天改管。',
+          lim:'结构已施工至 6F，越晚处理加固量越大。',zone:'4F · 结构加固前',due:3},
+ 'Q-005':{do:'机组侧移 200mm，或拆一组阀门改侧向接管。侧移需复核设备基础与地脚螺栓。',
+          lim:'设备已进场未就位，就位后二次搬运约 1.2 万。',zone:'B2 冷冻机房 · 设备就位前',due:8},
+ 'Q-006':{do:'加设 2 道 DN100 吊架，间距调整为 3.4m。',
+          lim:'已完成并通过复核。',zone:'2F 西区 · 已闭合',due:0},
+ 'Q-007':{do:'上翻段加装冷凝水提升泵，或下调吊顶标高 30mm 以保证 0.008 坡度。',
+          lim:'吊顶龙骨已放线，封板前必须定。',zone:'6F · 吊顶封板前',due:5},
+ 'Q-009':{do:'间隙用遇水膨胀止水条 + 微膨胀细石混凝土封堵，外侧做 2mm 聚氨酯附加层。',
+          lim:'回填已完成，需开挖工作面，雨季前必须做完。',zone:'B1 外墙 · 雨季前',due:0},
+ 'Q-008':{do:'—',lim:'—',zone:'—',due:0}
+};
+
+const TIER_LB={auto:'AI 自动判定',pending:'待人工确认',reject:'拒绝判定',manual:'人工提报'};
+const ST_LB={new:'待受理',open:'待处理',replied:'已回复待确认',review:'已修改待复核',closed:'已闭合',dispute:'争议中',rejected:'已驳回·不成立'};
+const SRC_LB={owner:'甲方提报',builder:'施工方提报',designer:'设计院提出',monitor:'监理提报',ai:'AI 发现'};
+const SRC_C={owner:'#1f5fd0',builder:'#a76a12',designer:'#1e7a57',monitor:'#7a5ea8',ai:'#5a7fa8'};
+/* URL 直达参数：?role=owner|builder|designer&view=loc|flow|cons&sel=Q-00X
+   便于分享指定视角、以及生成作品集截图 */
+const _Q=new URLSearchParams(location.search);
+const _roleOk=r=>['owner','builder','designer'].includes(r)?r:null;
+let state={view:['loc','flow','cons'].includes(_Q.get('view'))?_Q.get('view'):'loc',
+  role:_roleOk(_Q.get('role'))||_roleOk(window.__ROLE__)||'owner',
+  sel:(ITEMS.find(i=>i.id===_Q.get('sel'))?_Q.get('sel'):'Q-001'),consCat:'all',degraded:false,layer:'all',mode:'view',draft:null,seq:0,bfilter:'all'};
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const byId=id=>ITEMS.find(i=>i.id===id);
+/* 角色可见范围：施工方不接收"无结论"的问题 */
+const roleVisible=list=>state.role==='builder'
+  ? list.filter(i=>i.kind==='cons'||i.tier!=='reject')
+  : list;
+
+/* 两条终态：闭合（问题解决了）与驳回（问题不成立）。
+   驳回不是闭合：它不进闭环率，但必须留痕，且能重开。 */
+const isEnded=it=>it.st==='closed'||it.st==='rejected';
+/* 权限：谁有权验收并闭合。
+   原则：交回的人不能自己验收。设计院只能"交回"，不能"闭合"。 */
+const canVerify=it=>state.role==='owner'||(state.role==='builder'&&srcOf(it)==='builder');
+/* 施工方的两个身份：提报人（发现了设计问题，等对方改）与责任方（自己的整改单） */
+const isMyReport=it=>srcOf(it)==='builder';
+const isMyFix=it=>String(it.owner||'').indexOf('施工')>=0;
+/* 责任方是不是设计院（含结构）——施工整改单不该出现在设计院的工作队列里 */
+const isDesignJob=it=>/设计院|结构/.test(String(it.owner||''));
+/* 交回方式：改图（有交付物）或回复（只有说明），两者是并列出口，不是先后状态 */
+const DELIVER={review:'改图并交回',replied:'回复说明（未改图）'};
+/* 看板卡片上给一个"当前角色最该按的按钮" */
+function quickAct(it){
+  const R=state.role;
+  if(R==='designer'){
+    if(!isDesignJob(it)) return null;
+    if(it.st==='new') return {a:'accept',lb:'受理'};
+    if(it.st==='open') return {a:'mockfix',lb:'标记已修改'};
+    return null;
+  }
+  if(R==='builder'){
+    if(isMyFix(it)&&(it.st==='open')) return {a:'mockfix',lb:'提报已改'};
+    if(isMyReport(it)&&(it.st==='review'||it.st==='replied')) return {a:'close',lb:'确认闭合'};
+    if(isMyReport(it)&&(it.st==='new'||it.st==='open')) return {a:'urge',lb:'催办'};
+    if(isMyReport(it)&&it.st==='rejected') return {a:'reopen',lb:'申诉重开'};
+    return null;
+  }
+  if(it.st==='rejected') return {a:'reopen',lb:'重开'};
+  if(it.st==='review'||it.st==='replied') return {a:'close',lb:'复核通过'};
+  if(it.st==='dispute') return {a:'rule_ok',lb:'裁定'};
+  if(it.st==='new'||it.st==='open') return {a:'urge',lb:'催办'};
+  return null;
+}
+
+/* 问题来源：人工提报 or AI 发现 */
+/* 提报人 ≠ 责任方：
+   现场的问题多数由施工方提出（装不进去、没留洞、没装阀、坡度不够）；
+   甲方提报的多是"要求没被满足"（净高、检修空间、版本不同步）；监理少量。 */
+const SRC_MAP={'Q-001':'builder','Q-002':'owner','Q-003':'builder','Q-004':'builder','Q-005':'monitor','Q-006':'builder','Q-007':'builder','Q-008':'owner'};
+const srcOf=it=>it.src||SRC_MAP[it.id]||'ai';
+
+function timelineOf(it){
+  const s=srcOf(it), steps=[];
+  steps.push({t:'11-14 09:12',b:SRC_LB[s]+'在图纸上标注位置',s:'图号 '+String(it.fig||'').replace('DWG#','')+' · 已同步模型构件',done:true});
+  steps.push({t:'11-14 09:12',b:'自动推送给 '+(it.who||it.owner||'专业设计师'),s:'按 专业 + 楼层 匹配责任人，抄送监理',done:it.st!=='new'});
+  if(it.st==='dispute'){
+    steps.push({t:'11-15 10:20',b:'设计院申请驳回',s:it.tlNote||'已附理由，转甲方裁定',done:true});
+    steps.push({t:'待定',b:'甲方裁定',s:'裁定前不停止计时',done:false});
+  }else if(it.st==='replied'){
+    steps.push({t:'11-15 10:20',b:'设计师回复（不修改）',s:it.tlNote||'已说明处理意见',done:true});
+    steps.push({t:'待定',b:'提报人确认',s:'接受则关闭，不接受转争议',done:false});
+  }else if(it.st==='review'){
+    steps.push({t:'11-15 10:20',b:'设计师完成修改',s:'回传同视口截图 V4',done:true});
+    steps.push({t:'待定',b:'提报人复核',s:'确认改到位则闭合',done:false});
+  }else if(it.st==='closed'){
+    steps.push({t:'11-15 10:20',b:'设计师完成修改',s:'回传同视口截图 V4',done:true});
+    steps.push({t:'11-15 16:40',b:'双方确认闭合',s:'截图与锚点已归档，进入月报',done:true});
+  }else if(it.st==='rejected'){
+    steps.push({t:'11-15 15:02',b:'受理并核实',s:'已查图与现场，准备给出结论',done:true});
+    steps.push({t:'11-15 15:30',b:'判定不成立，驳回',s:it.rejectNote||'依据不充分或与现场不符，驳回并留痕；提报人可重开',done:true});
+  }else{
+    const ok=it.st!=='new';
+    steps.push({t:ok?'11-14 14:05':'待定',b:'设计师受理',s:ok?'已受理，处理中':'超 24 小时自动升级专业负责人',done:ok});
+    steps.push({t:'待定',b:'回复或修改',s:'给出处理意见或上传修改截图',done:false});
+  }
+  const firstUndone=steps.findIndex(x=>!x.done);
+  return steps.map((x,i)=>({...x,cls:x.done?'done':(i===firstUndone?'now':'')}));
+}
+const MODEL_BODY=$('#modelPane .pane-body').innerHTML;
+
+/* ================= 模型：等轴测生成 ================= */
+const S=21,OX=320,OY=180;
+function P(x,y,z){return [((x-y)*0.866*S+OX),((x+y)*0.5*S-z*S+OY)];}
+function poly(pts,cls){
+  return '<polygon class="'+cls+'" points="'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'"/>';
+}
+function box(x,y,z,w,d,h,cls){
+  const T=[P(x,y,z+h),P(x+w,y,z+h),P(x+w,y+d,z+h),P(x,y+d,z+h)];
+  const B=[P(x,y,z),P(x+w,y,z),P(x+w,y+d,z),P(x,y+d,z)];
+  return poly(T,cls+'-t')
+       + poly([T[3],T[2],B[2],B[3]],cls+'-l')
+       + poly([T[1],T[2],B[2],B[1]],cls+'-r');
+}
+function buildModel(){
+  const parts=[
+    {x:0,y:0,z:0,w:10,d:10,h:0.35,cls:'slab'},
+    {x:1,y:1,z:0.35,w:0.5,d:0.5,h:4.2,cls:'col'},
+    {x:8.5,y:1,z:0.35,w:0.5,d:0.5,h:4.2,cls:'col'},
+    {x:1,y:8.5,z:0.35,w:0.5,d:0.5,h:4.2,cls:'col'},
+    {x:8.5,y:8.5,z:0.35,w:0.5,d:0.5,h:4.2,cls:'col'},
+    {x:6.6,y:1.2,z:0.35,w:2.0,d:1.6,h:1.6,cls:'eq'},
+    {x:0.8,y:6.3,z:3.5,w:7.8,d:0.9,h:0.4,cls:'duct'},
+    {x:4.1,y:2.0,z:3.5,w:0.85,d:4.3,h:0.34,cls:'duct'},
+    {x:1.0,y:4.7,z:3.15,w:7.4,d:0.18,h:0.18,cls:'pipe'},
+    {x:1.2,y:5.05,z:2.95,w:7.0,d:0.16,h:0.16,cls:'pipe'},
+    {x:1.0,y:7.3,z:3.35,w:7.2,d:0.2,h:0.2,cls:'pipe2'},
+    {x:2.0,y:3.4,z:0.35,w:0.4,d:0.4,h:3.0,cls:'riser'},
+    {x:8.0,y:7.4,z:0.35,w:0.4,d:0.4,h:3.0,cls:'riser'}
+  ];
+  parts.sort((a,b)=>(a.z-b.z)||((a.x+a.y)-(b.x+b.y)));
+  return parts.map(p=>box(p.x,p.y,p.z,p.w,p.d,p.h,p.cls)).join('')
+    + '<text x="500" y="404" font-family="monospace" font-size="9" fill="#a7b4c9">ISO · N</text>';
+}
+
+/* ================= 渲染 ================= */
+function pinCls(it){
+  if(it.kind==='cons') return 'md sev-'+(it.sev==='h'?'h':'m');
+  if(it.st==='closed') return 'dr closed';
+  if(it.st==='review') return 'dr review';
+  return 'dr sev-'+(it.sev==='h'?'h':it.sev==='m'?'m':'l');
+}
+
+function renderDraw(){
+  const cv=$('#drawCanvas');
+  $$('.pin',cv).forEach(e=>e.remove());
+  const list=roleVisible(ITEMS).filter(i=>{
+    if(state.layer==='all') return true;
+    if(state.layer==='hvac') return (i.disc||'').includes('暖通');
+    if(state.layer==='elec') return (i.disc||'').includes('电气');
+    return true;
+  });
+  list.forEach(it=>{
+    const b=document.createElement('button');
+    b.className='pin '+pinCls(it)+(state.sel===it.id?' sel':'');
+    b.style.left=it.dx+'%'; b.style.top=it.dy+'%';
+    b.dataset.id=it.id; b.title=it.id+' · '+it.title;
+    b.textContent=it.kind==='cons'?'△':(it.st==='closed'?'✓':it.id.slice(-1));
+    cv.appendChild(b);
+  });
+}
+
+function renderModel(){
+  const svg=$('#modelSvg');
+  svg.innerHTML=buildModel();
+  const cv=$('#modelCanvas');
+  $$('.pin',cv).forEach(e=>e.remove());
+  roleVisible(ITEMS).filter(i=>i.p).forEach(it=>{
+    const [sx,sy]=P(it.p[0],it.p[1],it.p[2]);
+    const b=document.createElement('button');
+    b.className='pin '+pinCls(it)+(state.sel===it.id?' sel':'');
+    b.style.left=(sx/640*100)+'%'; b.style.top=(sy/430*100)+'%';
+    b.dataset.id=it.id; b.title=it.title;
+    b.textContent=it.kind==='cons'?'△':(it.st==='closed'?'✓':it.id.slice(-1));
+    cv.appendChild(b);
+  });
+}
+
+/* ================= V3：提报 ================= */
+const ROUTE={
+  hvac:{k:'暖通',to:'设计院 · 暖通 王工',note:'负责 5F 空调水与风管'},
+  plumb:{k:'给排水',to:'设计院 · 给排水 赵工',note:'负责 5F 给排水与消防'},
+  elec:{k:'电气',to:'设计院 · 电气 李工',note:'负责 5F 强电与桥架'},
+  struct:{k:'结构',to:'结构 · 设计院 刘工',note:'负责 5F 结构留洞与加固'},
+  arch:{k:'建筑',to:'设计院 · 建筑 陈工',note:'负责 5F 平面与净高'}
+};
+const CATS=['净高不足','平面空间不足','碰撞·装不下','图纸缺漏','现场施工问题','其他'];
+const DEFAULT_DESC={
+  owner:'此处净高不足，按图约 2.05m，人员通行与设备运输受影响，请核实并给出处理意见。',
+  builder:'现场按图施工时发现此处空间不足，风管与桥架无法同时安装，请确认做法。',
+  designer:'本层平面此处空间紧张，建议复核设备检修间距。'
+};
+
+function inferMajor(d){
+  const cand=ITEMS.filter(i=>i.kind==='issue'&&i.dx!=null&&i.disc);
+  if(!cand.length) return 'hvac';
+  let best=cand[0], bd=1e9;
+  cand.forEach(i=>{const dd=Math.hypot(i.dx-d.dx,i.dy-d.dy); if(dd<bd){bd=dd;best=i;}});
+  const s=best.disc||'';
+  if(s.includes('给排水')) return 'plumb';
+  if(s.includes('电气')) return 'elec';
+  if(s.includes('结构')) return 'struct';
+  if(s.includes('建筑')) return 'arch';
+  return 'hvac';
+}
+
+function renderForm(){
+  const d=state.draft||{};
+  const R=state.role, isB=R==='builder';
+  const major=d.major||inferMajor(d); d.major=major;
+  const rt=ROUTE[major];
+  $('#cardTag').textContent='新建';
+  let h='<div class="form">';
+
+  h+='<div class="frow"><div class="fl">位置 <em>*</em><span style="margin-left:auto;font-size:10px;color:var(--faint);font-family:var(--mono)">'+(d.fig||'')+'</span></div>'
+    +'<div class="fbox" style="background:var(--bg);border-style:dashed;color:var(--ink2)">'
+    +(d.floor||'5F')+' · 图纸坐标 '+Math.round(d.dx)+'% , '+Math.round(d.dy)+'%'
+    +'<span style="color:var(--faint);font-size:10.5px"> · 模型视点已同步</span></div></div>';
+
+  h+='<div class="frow"><div class="fl">提报人</div><div class="fbox" style="color:var(--ink2);background:var(--bg)">'
+    +{owner:'甲方 · 项目总 张',builder:'施工总包 · 现场技术 王',designer:'设计院 · 机电 张'}[R]+'</div></div>';
+
+  h+='<div class="frow"><div class="fl">专业（决定由谁核实）</div><select class="fbox" id="fMajor">'
+    +Object.entries(ROUTE).map(([k,v])=>'<option value="'+k+'"'+(k===major?' selected':'')+'>'+v.k+' — '+v.to+'</option>').join('')
+    +'</select></div>';
+
+  h+='<div class="frow"><div class="fl">问题类别</div><div class="fchips" id="fCats">'
+    +CATS.map(c=>'<button class="fchip'+(c===(d.cat||CATS[0])?' on':'')+'" data-cat="'+c+'">'+c+'</button>').join('')
+    +'</div></div>';
+
+  h+='<div class="frow"><div class="fl">问题描述 <em>*</em></div>'
+    +'<textarea class="fbox" id="fDesc" placeholder="一句话说清：在哪、什么问题、影响什么">'
+    +(d.desc||DEFAULT_DESC[R])+'</textarea></div>';
+
+  h+='<div class="frow"><div class="fl">现场照片'+(isB?' <em>*</em>':'（可选）')+'</div><div class="photos" id="phWrap">'
+    +(d.photos||[]).map(p=>'<img class="thumb" src="'+p+'" alt="已上传">').join('')
+    +'<button class="ph-add" id="phAdd">'+(isB?'拍照 / 选图':'上传截图')+'</button></div>'
+    +(isB?'<div style="font-size:10.5px;color:var(--faint)">没有照片的现场问题，设计师第一反应是「你量错了」——所以强制要求</div>':'')
+    +'</div>';
+
+  const catEff=d.cat||CATS[0], toBuild=catEff==='现场施工问题';
+  const routeWho=toBuild?'施工总包 · 现场技术':rt.to;
+  const routeNote=toBuild?'按责任片区匹配，整改后回传照片':rt.note;
+  h+='<div class="route"><span>→</span><span>将推送给 <b>'+routeWho+'</b>（'+routeNote+'）<br>'
+    +'同时抄送监理；<b>24 小时未受理自动升级</b>给专业负责人</span></div>';
+
+  h+='<div class="acts" style="margin:2px 0 0"><button class="btn pri full" id="fSubmit">提交并推送</button>'
+    +'<button class="btn" id="fCancel">取消</button></div>';
+  h+='</div>';
+  $('#cardBody').innerHTML=h;
+}
+
+function startPick(){
+  if(state.view!=='loc') switchView('loc');
+  state.mode='pick'; state.draft=null;
+  $('#pickbar').classList.add('on');
+  $('#drawCanvas').classList.add('picking');
+  $$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v==='loc'));
+  renderAll();
+  toast('在图上点选问题位置（Esc 退出）');
+}
+
+function exitPick(){
+  state.mode='view'; state.draft=null;
+  $('#pickbar').classList.remove('on');
+  $('#drawCanvas').classList.remove('picking');
+  renderAll();
+}
+
+function submitDraft(){
+  const d=state.draft||{};
+  const major=d.major||'hvac', rt=ROUTE[major];
+  const desc=(d.desc||'').trim();
+  if(desc.length<4){ toast('请把问题描述写清楚（至少 4 个字）'); return; }
+  if(state.role==='builder' && !(d.photos&&d.photos.length)){ toast('施工方提报必须上传现场照片'); return; }
+  state.seq++;
+  const id='N-'+String(state.seq).padStart(2,'0');
+  const cat=d.cat||CATS[0];
+  /* 责任方按类别走，不完全按专业：现场施工类派给施工总包，其余派给对应专业设计院 */
+  const toBuild=cat==='现场施工问题';
+  const resp=toBuild?'施工总包':('设计院·'+rt.k);
+  const respWho=toBuild?'施工总包 · 现场技术':rt.to;
+  const it={
+    id, kind:'issue', sev:'m', tier:'manual', conf:0, st:'new', over:0,
+    title:cat+'：'+desc.slice(0,16)+(desc.length>16?'…':''),
+    what:desc,
+    why:cat+'：'+(toBuild?'巡检发现，需施工方整改并回传照片':'影响使用或现场实施，需'+rt.k+'专业核实并给出处理意见'),
+    who:respWho, owner:resp, disc:rt.k, floor:d.floor||'5F',
+    rule:'—（人工提报，AI 不判定成立与否）', basis:'—',
+    dx:d.dx, dy:d.dy, p:[Math.min(9.6,d.dx/10),Math.min(9.6,d.dy/10),3.4],
+    fig:d.fig||'DWG#4F2A-999', comp:d.comp||'Revit#1302886',
+    src:state.role, photos:(d.photos||[]).slice()
+  };
+  ITEMS.unshift(it);
+  state.mode='view'; state.draft=null; state.sel=id;
+  $('#pickbar').classList.remove('on');
+  $('#drawCanvas').classList.remove('picking');
+  renderAll();
+  toast('已提交，推送给 '+respWho+'（'+(toBuild?'按责任片区匹配到施工总包':rt.note)+'）');
+}
+
+function renderCard(){
+  if(state.mode==='pick'){
+    $('#cardTag').textContent='选点';
+    $('#cardBody').innerHTML='<div class="note">在左侧图纸上点选问题位置。<br>点完会自动带出图号、坐标，并按最近构件推断专业。</div>';
+    return;
+  }
+  if(state.mode==='form'){ renderForm(); return; }
+  const box=$('#cardBody'), it=byId(state.sel);
+  $('#cardTag').textContent=it?it.id:'—';
+  if(!it){box.innerHTML='<div class="card-empty"></div>';return;}
+  if(it.kind==='cons'){renderConsCard(it,box);return;}
+
+  const R=state.role, isB=R==='builder', isD=R==='designer';
+  const f=FIELD[it.id]||(it.tier==='manual'
+    ?{do:'待 '+(it.owner||'专业设计师')+' 回复后给出做法',lim:'未定案前不要下料',zone:(it.floor||'5F')+' · 待定',due:7}
+    :{do:'—',lim:'—',zone:'—',due:0});
+  const cCol=it.conf>=0.85?'var(--ok)':it.conf>=0.35?'var(--warn)':'var(--bad)';
+  const dl=it.tier==='reject'?'暂不计时':(it.over>0?'已超期 '+it.over+' 天':'剩 '+f.due+' 天');
+
+  let html='';
+  html+='<div class="c-top"><span class="c-id">'+it.id+'</span>'
+    +'<span class="chip '+(it.sev==='h'?'h':'m')+'">'+(it.sev==='h'?'严重':'一般')+'</span>'
+    +(isB?'':'<span class="chip '+(it.tier==='auto'?'a':it.tier==='pending'?'m':'n')+'">'+TIER_LB[it.tier]+'</span>')
+    +'<span class="chip n">'+ST_LB[it.st]+'</span>'
+    +(it.confirmed&&it.st==='open'?'<span class="chip brand">已派单</span>':'')
+    +(it.appealed&&it.st==='open'?'<span class="chip m">有异议·转设计</span>':'')
+    +(it.over>0?'<span class="chip h">超期 '+it.over+' 天</span>':'')
+    +'</div>';
+
+  html+='<div class="c-title">'+it.title+'</div>';
+
+  const sc=SRC_C[srcOf(it)];
+  html+='<div class="src" style="margin-bottom:11px"><i style="background:'+sc+'"></i>'
+    +SRC_LB[srcOf(it)]+(it.photos&&it.photos.length?' · 现场照片 '+it.photos.length+' 张':'')
+    +(it.tier==='manual'?' · 已并入项目问题台账':'')+'</div>';
+
+  if(it.photos&&it.photos.length){
+    html+='<div class="frow" style="margin-bottom:12px"><div class="photos">'
+      +it.photos.map(p=>'<img class="thumb" src="'+p+'" alt="现场照片">').join('')+'</div></div>';
+  }
+
+  if(isB){
+    html+='<div class="three">'
+      +'<div class="th"><span class="n">1</span><span class="tx"><span class="lb">现场看到什么</span>'+it.what+'</span></div>'
+      +'<div class="th"><span class="n">2</span><span class="tx"><span class="lb">现场怎么做</span>'+f.do+'</span></div>'
+      +'<div class="th"><span class="n">3</span><span class="tx"><span class="lb">卡在哪个节点</span><b>'+dl+'</b>，'+f.lim+'</span></div>'
+      +'</div>';
+  }else if(isD){
+    html+='<div class="three">'
+      +'<div class="th"><span class="n">1</span><span class="tx"><span class="lb">问题描述</span>'+it.what+'</span></div>'
+      +'<div class="th"><span class="n">2</span><span class="tx"><span class="lb">'+(it.tier==='manual'?'提报理由':'违反条文')+'</span>'+it.why+'</span></div>'
+      +'<div class="th"><span class="n">3</span><span class="tx"><span class="lb">改哪个图元</span><b>'+it.fig+'</b> / '+it.comp+'</span></div>'
+      +'</div>';
+  }else{
+    html+='<div class="three">'
+      +'<div class="th"><span class="n">1</span><span class="tx"><span class="lb">什么问题</span>'+it.what+'</span></div>'
+      +'<div class="th"><span class="n">2</span><span class="tx"><span class="lb">为什么是问题</span>'+it.why+'</span></div>'
+      +'<div class="th"><span class="n">3</span><span class="tx"><span class="lb">谁来改</span><b>'+it.who+'</b>　'+dl+'</span></div>'
+      +'</div>';
+  }
+
+  html+='<div class="meta-grid">'
+    +'<div class="mg"><div class="k">部位</div><div class="v">'+it.floor+' · '+it.disc+'</div></div>'
+    +'<div class="mg"><div class="k">状态</div><div class="v">'+ST_LB[it.st]+'</div></div>';
+  if(isD){
+    html+='<div class="mg"><div class="k">命中规则</div><div class="v">'+it.rule+'</div></div>'
+      +'<div class="mg"><div class="k">依据</div><div class="v" style="font-size:11px">'+it.basis+'</div></div>';
+  }else if(isB){
+    html+='<div class="mg"><div class="k">影响工序</div><div class="v" style="font-size:11px">'+f.zone+'</div></div>'
+      +'<div class="mg"><div class="k">时限</div><div class="v" style="color:'+(it.over>0?'var(--bad)':'var(--ink2)')+'">'+dl+'</div></div>';
+  }else{
+    html+='<div class="mg"><div class="k">责任方</div><div class="v">'+it.who+'</div></div>'
+      +'<div class="mg"><div class="k">时限</div><div class="v" style="color:'+(it.over>0?'var(--bad)':'var(--ink2)')+'">'+dl+'</div></div>';
+  }
+  html+='</div>';
+
+  if(isD && it.tier!=='manual'){
+    html+='<div class="conf-box">'
+      +'<div class="conf-row"><b style="color:'+cCol+'">'+it.conf.toFixed(2)+'</b><span>/ 1.00 · '+TIER_LB[it.tier]+'</span></div>'
+      +'<div class="cbar"><i style="width:'+(it.conf*100)+'%;background:'+cCol+'"></i></div>'
+      +'<div class="tierline">'+(it.tier==='auto'?'几何可计算，置信度 ≥ 0.85，系统直接出结论。'
+        :it.tier==='pending'?'置信度 0.35–0.85，给候选与依据，等审图人签字。'
+        :'置信度 &lt; 0.35 或输入质量不足，系统拒绝判定，不猜。')+'</div>'
+      +'</div>';
+  }else if(R==='owner'){
+    if(it.tier==='manual'){
+      html+='<div class="basis">来源 <b>'+SRC_LB[srcOf(it)]+'</b>'
+        +'<span style="margin-left:auto;color:var(--muted)">人工提报，AI 只辅助不判定</span></div>';
+    }else{
+      html+='<div class="basis">判定依据 <b>'+it.basis+'</b>'
+        +(it.tier==='auto'?'<span style="margin-left:auto;color:var(--ok)">自动判定</span>'
+          :it.tier==='pending'?'<span style="margin-left:auto;color:var(--warn)">待你确认</span>'
+          :'<span style="margin-left:auto;color:var(--bad)">未能判定</span>')+'</div>';
+    }
+  }
+  if(isB){
+    html+='<div class="note'+(it.tier==='auto'?'':' warn')+'">'
+      +(it.tier==='auto'
+        ? '<b>可直接施工。</b>本条已由建设单位确认并派单，规范依据见派单附件。现场条件不满足时点「有异议」，不要自行改做法。'
+        : '<b>尚待设计院定案。</b>先按上面的做法预判工作面、暂不下料；定案后系统会重发派单。')
+      +'</div>';
+  }
+
+  if(it.st==='review'){
+    html+='<div class="cmp">'
+      +'<div class="cmp-h">'+(isB?'✓ 已提报，等甲方复核':'✓ 施工方已修改，待你复核')+'</div>'
+      +'<div class="cmp-imgs">'
+        +'<div class="cmp-im"><span class="cmp-lb">修改前 V3</span>'+cmpSvg(false)+'</div>'
+        +'<div class="cmp-im"><span class="cmp-lb">修改后 V4</span>'+cmpSvg(true)+'</div>'
+      +'</div>'
+      +'<div class="cmp-f">同视口自动截图。洞口已补，位置偏差 8mm，在 50mm 容差内。</div>'
+      +'</div>';
+  }
+
+  if(isD){
+    html+='<div class="anchor"><div class="k">问题锚点（BCF 2.1）</div>'
+      +'<div class="row"><span>图纸</span><span>'+it.fig+'</span></div>'
+      +'<div class="row"><span>构件</span><span>'+it.comp+'</span></div>'
+      +'<div class="row"><span>坐标</span><span>'+it.p.map(v=>v.toFixed(2)).join(' , ')+'</span></div>'
+      +'</div>';
+  }
+
+  const verify=canVerify(it);
+  if(it.st==='closed'){
+    html+='<div class="cmp"><div class="cmp-h" style="background:var(--okSoft)">✓ 已闭合 · 2026-11-05 由 '+it.who+' 确认</div>'
+      +'<div class="cmp-f" style="border-top:none">复核截图已归档，可追溯至 '+it.fig+' 与 '+it.comp+'。</div></div>';
+    if(verify) html+='<div class="btn-row"><button class="btn ghost full" data-act="reopen">重新打开</button></div>';
+  }else if(it.st==='rejected'){
+    html+='<div class="cmp"><div class="cmp-h" style="background:#eceff5;color:#5f6b7c">⊘ 已驳回 · 问题不成立</div>'
+      +'<div class="cmp-f" style="border-top:none">'+(it.rejectNote||'经核实，本条依据不充分或与现场条件不符，判定不成立。')+
+      '<br><br><b>驳回不等于闭合。</b>它不计入闭环率，但会留痕进月报的「提报质量」统计；提报人不认可可重开一次并补充证据。</div></div>';
+    if(verify||isMyReport(it)) html+='<div class="btn-row"><button class="btn ghost full" data-act="reopen">重开并补充说明</button></div>';
+  }else if(it.st==='dispute'){
+    if(R==='owner'){
+      html+='<div class="note warn"><b>设计院申请驳回：</b>'+(it.tlNote||'此处受结构梁限制，无法按原方案调整，建议结构专业复核。')+'</div>'
+        +'<div class="acts"><button class="btn pri full" data-act="rule_ok">裁定成立，退回修改</button>'
+        +'<button class="btn" data-act="no">裁定不成立，驳回本条</button></div>';
+    }else if(isD){
+      html+='<div class="note warn">已提交甲方裁定，等待结论。<b>裁定前不停止计时。</b></div>';
+    }else{
+      html+='<div class="note warn">已转甲方裁定，等待结论。</div>';
+    }
+  }else if(it.st==='replied'){
+    if(verify){
+      html+='<div class="note"><b>设计师回复（本次未改图）：</b>'+(it.tlNote||'此处净高按 2.40m 控制，已在说明中注明，无需修改图纸。')+'</div>'
+        +'<div class="acts"><button class="btn pri full" data-act="close">接受说明，关闭</button>'
+        +'<button class="btn" data-act="dispute">不接受，转争议</button></div>';
+    }else if(isD){
+      html+='<div class="note">已回复，等待提报人确认。<b>本次只有说明、没有图面变更，因此不进「待复核」。</b></div>';
+    }else{
+      html+='<div class="note">等待提报人确认（说明类答复，无修改截图）。</div>';
+    }
+  }else if(it.st==='review'){
+    if(verify){
+      html+='<div class="note"><b>设计师已交回修改：</b>附同视口截图修改前 / 修改后，请核对是否改到位。</div>'
+        +'<div class="btn-row"><button class="btn pri full" data-act="close">'+(isB?'现场可施工，确认闭合':'复核通过，闭合')+'</button>'
+        +'<button class="btn full" data-act="reject">'+(isB?'还是做不了，退回':'没改到位，退回')+'</button></div>';
+    }else if(isD){
+      html+='<div class="note warn">已交回修改，等待提报人复核。<b>交回的人不能自己验收——设计院不能自验自闭合。</b></div>';
+    }else{
+      html+='<div class="note">已交回修改，等待提报人复核。</div>';
+    }
+  }else{
+    if(isB){
+      if(isMyFix(it)){
+        html+='<div class="note"><b>这是要你现场整改的一条。</b>改完拍同角度照片回传，提报人复核后闭合；现场条件确实做不了，点「有异议」转设计院。</div>'
+          +'<div class="acts"><button class="btn pri full" data-act="mockfix">提报已整改（附照片）</button>'
+          +'<button class="btn" data-act="appeal">有异议，转设计院</button></div>';
+      }else if(isMyReport(it)){
+        html+='<div class="note"><b>你提报的问题，已推送给 '+(it.who||it.owner)+'。</b>'
+          +(it.st==='new'?'对方还没受理，超 24 小时自动升级专业负责人。':'对方已受理，正在处理。')+'</div>'
+          +'<div class="acts"><button class="btn pri full" data-act="urge">催办</button>'
+          +'<button class="btn" data-act="escalate">升级给专业负责人</button></div>';
+      }else{
+        html+='<div class="note">这条不是你提报、也不由你整改，只读。</div>';
+      }
+    }else if(isD){
+      if(!isDesignJob(it)){
+        html+='<div class="note">这条责任方是 <b>'+it.owner+'</b>，不由你处理，你只读。<br>你可以在图上看到它，是为了判断会不会影响你的管线综合。</div>';
+      }else if(it.st==='new'){
+        html+='<div class="acts"><button class="btn pri full" data-act="accept">受理并开始处理</button>'
+          +'<button class="btn" data-act="dispute">申请驳回（附理由）</button></div>';
+      }else{
+        html+='<div class="note">交回有两种方式，选一种：<b>改图</b>（需附同视口截图，进入待复核）或<b>回复说明</b>（说明为何不改，进入已回复）。</div>'
+          +'<div class="acts"><button class="btn pri full" data-act="mockfix">标记已修改（附图）</button>'
+          +'<button class="btn" data-act="reply">回复说明，不改图</button></div>'
+          +'<div class="btn-row"><button class="btn ghost full" data-act="dispute">申请驳回（附理由）</button></div>';
+      }
+    }else if(it.tier==='manual'){
+      html+='<div class="note"><b>已推送给 '+(it.who||it.owner)+'</b>'+(it.st==='new'?'，等待受理，超 24 小时自动升级给专业负责人。':'。')+'</div>'
+        +'<div class="acts"><button class="btn pri full" data-act="urge">催办</button></div>';
+    }else if(it.confirmed){
+      html+='<div class="cmp"><div class="cmp-h" style="background:var(--bg);color:var(--muted)">已派单给 '+it.who+' · '+(it.over>0?'已卡 '+it.over+' 天':'在期限内')+'</div>'
+        +'<div class="cmp-f" style="border-top:none">设计院改完回传同视口截图 → 待复核；只给说明 → 已回复。</div></div>'
+        +'<div class="acts"><button class="btn pri full" data-act="urge">催办</button>'
+        +'<button class="btn" data-act="mockfix">演示：对方已改</button></div>';
+    }else{
+      const rj=it.tier==='reject';
+      html+='<div class="acts"><button class="btn pri full" data-act="ok">'+(rj?'转 BIM 管理补正版次':'确认成立并派单')+'</button>'
+        +'<button class="btn" data-act="no">'+(rj?'驳回（问题不成立）':'驳回')+'</button></div>';
+    }
+  }
+
+  html+='<div class="fl" style="margin:2px 0 8px">流转记录</div><div class="tl">'
+    +timelineOf(it).map(x=>'<div class="tl-i '+x.cls+'"><span class="tl-d"></span>'
+      +'<div class="tl-tx"><b>'+x.b+'</b><span>'+x.t+' · '+x.s+'</span></div></div>').join('')
+    +'</div>';
+
+  html+='<div class="queue"><div class="k">同区域其他问题</div>'
+    +roleVisible(ITEMS).filter(x=>x.kind==='issue'&&x.id!==it.id&&x.floor===it.floor).slice(0,4).map(x=>
+      '<div class="qitem" data-id="'+x.id+'"><span class="dot" style="background:'+(x.sev==='h'?'#b03a2e':'#a76a12')+'"></span>'
+      +'<span class="t">'+x.title+'</span><span style="color:var(--faint);font-size:10px">'+x.id+'</span></div>').join('')
+    +'</div>';
+
+  box.innerHTML=html;
+}
+
+function cmpSvg(fixed){
+  return '<svg viewBox="0 0 150 96"><rect width="150" height="96" fill="#fff"/>'
+    +'<g stroke="#e3eaf5" stroke-width="1"><line x1="0" y1="30" x2="150" y2="30"/><line x1="0" y1="66" x2="150" y2="66"/><line x1="50" y1="0" x2="50" y2="96"/><line x1="100" y1="0" x2="100" y2="96"/></g>'
+    +'<rect x="10" y="8" width="130" height="80" fill="none" stroke="#c4d2e4" stroke-width="3"/>'
+    +'<rect x="58" y="8" width="6" height="80" fill="#d3dcea"/>'
+    +'<rect x="20" y="38" width="110" height="9" fill="#edf2fa" stroke="#b9c8de"/>'
+    +(fixed
+      ? '<circle cx="61" cy="42" r="7" fill="none" stroke="#1e7a57" stroke-width="2"/><line x1="54" y1="49" x2="68" y2="35" stroke="#1e7a57" stroke-width="2"/>'
+      : '<circle cx="61" cy="42" r="7" fill="none" stroke="#b03a2e" stroke-width="2" stroke-dasharray="3 2"/><line x1="56" y1="37" x2="66" y2="47" stroke="#b03a2e" stroke-width="2"/>')
+    +'</svg>';
+}
+
+function renderConsCard(it,box){
+  let html='<div class="c-top"><span class="c-id">'+it.id+'</span>'
+    +'<span class="chip brand">图模差异</span>'
+    +'<span class="chip '+(it.sev==='h'?'h':'m')+'">'+(it.sev==='h'?'严重':'一般')+'</span></div>';
+  html+='<div class="c-title">'+it.title+'</div>';
+  html+='<div class="vs"><div class="vs-side"><div class="k">图纸</div><div class="v">'+it.figV+'</div></div>'
+    +'<div class="vs-mid">≠</div>'
+    +'<div class="vs-side bad"><div class="k">模型</div><div class="v">'+it.modV+'</div></div></div>';
+  html+='<div class="meta-grid">'
+    +'<div class="mg"><div class="k">部位</div><div class="v">'+it.loc+'</div></div>'
+    +'<div class="mg"><div class="k">责任方</div><div class="v">'+it.owner+'</div></div>'
+    +'<div class="mg"><div class="k">图纸锚点</div><div class="v mono">'+it.fig+'</div></div>'
+    +'<div class="mg"><div class="k">构件锚点</div><div class="v mono">'+it.comp+'</div></div>'
+    +'</div>';
+  html+='<div class="diff-f" style="margin-bottom:14px;font-size:11.5px;color:var(--ink2)">'+it.delta+'</div>';
+  html+='<div class="btn-row"><button class="btn pri full" data-act="consfix">派单给 '+it.owner.split('·')[1]+'</button>'
+    +'<button class="btn" data-act="bcf">导出 BCF</button></div>';
+  html+='<div class="queue"><div class="k">该构件相关</div>'
+    +'<div class="qitem"><span class="dot" style="background:#b03a2e"></span><span class="t">C-07 风管规格标注空缺</span></div>'
+    +'<div class="qitem"><span class="dot" style="background:#a76a12"></span><span class="t">Q-001 风管与桥架碰撞</span></div></div>';
+  box.innerHTML=html;
+}
+
+function renderCons(){
+  const list=$('#consList');
+  const data=ITEMS.filter(i=>i.kind==='cons'&&(state.consCat==='all'||i.cat===state.consCat));
+  list.innerHTML=data.map(it=>{
+    const cls=it.tag==='b'?'bad':'';
+    return '<div class="diff" data-id="'+it.id+'">'
+      +'<div class="diff-t"><span class="c-id">'+it.id+'</span>'
+      +'<span class="chip '+(it.sev==='h'?'h':'m')+'">'+(it.sev==='h'?'严重':'一般')+'</span>'
+      +'<span class="chip n">'+(it.cat==='geo'?'几何位置':it.cat==='count'?'构件数量':'信息属性')+'</span></div>'
+      +'<div class="diff-name">'+it.title+'</div>'
+      +'<div class="diff-loc">'+it.loc+'</div>'
+      +'<div class="vs">'
+        +'<div class="vs-side '+cls+'"><div class="k">图纸</div><div class="v">'+it.figV+'</div></div>'
+        +'<div class="vs-mid">≠</div>'
+        +'<div class="vs-side '+cls+'"><div class="k">模型</div><div class="v">'+it.modV+'</div></div>'
+      +'</div>'
+      +'<div class="diff-f"><span>'+it.delta+'</span>'
+      +'<button class="btn sm" data-goto="'+it.id+'">图上查看</button></div>'
+      +'</div>';
+  }).join('');
+}
+
+function boardFilters(){
+  const R=state.role;
+  if(R==='builder') return [
+    {k:'all',lb:'全部'},
+    {k:'mine',lb:'我提报的'},
+    {k:'fix',lb:'待我整改'},
+    {k:'close',lb:'待我确认'}
+  ];
+  if(R==='designer') return [
+    {k:'all',lb:'全部'},
+    {k:'todo',lb:'待我受理'},
+    {k:'work',lb:'待我交回'},
+    {k:'done',lb:'已闭合'}
+  ];
+  return [
+    {k:'all',lb:'全部'},
+    {k:'mine',lb:'我提报的'},
+    {k:'open',lb:'未闭合'},
+    {k:'over',lb:'超期'},
+    {k:'rejected',lb:'已驳回'}
+  ];
+}
+function bfMatch(it,k){
+  k=k||state.bfilter;
+  if(k==='all') return true;
+  if(k==='mine') return srcOf(it)===state.role;
+  if(k==='fix') return isMyFix(it)&&!isEnded(it);
+  if(k==='close') return isMyReport(it)&&(it.st==='review'||it.st==='replied');
+  if(k==='todo') return it.st==='new';
+  if(k==='work') return it.st==='open';
+  if(k==='done') return it.st==='closed';
+  if(k==='rejected') return it.st==='rejected';
+  if(k==='open') return !isEnded(it);
+  if(k==='over') return it.over>0&&!isEnded(it);
+  return true;
+}
+function renderFlow(){
+  const visAll=roleVisible(ITEMS).filter(i=>i.kind==='issue');
+  const vis=visAll.filter(it=>bfMatch(it));
+  $('#bfilters').innerHTML=boardFilters().map(f=>
+    '<button class="bf'+(state.bfilter===f.k?' on':'')+'" data-bf="'+f.k+'">'+f.lb
+    +'<span class="c">'+visAll.filter(it=>bfMatch(it,f.k)).length+'</span></button>').join('');
+  const cols=[
+    {k:'new',lb:'待受理',c:'var(--brand2)',ids:vis.filter(i=>i.st==='new')},
+    {k:'open',lb:'处理中',c:'var(--bad)',ids:vis.filter(i=>i.st==='open')},
+    {k:'review',lb:'待复核',sub:'已改待验',c:'var(--warn)',ids:vis.filter(i=>i.st==='review')},
+    {k:'replied',lb:'已回复',sub:'待确认',c:'#7a5ea8',ids:vis.filter(i=>i.st==='replied'||i.st==='dispute')},
+    {k:'closed',lb:'已闭合',c:'var(--ok)',ids:vis.filter(i=>i.st==='closed')},
+    {k:'rejected',lb:'已驳回',sub:'不成立',c:'#77839a',ids:vis.filter(i=>i.st==='rejected')}
+  ];
+  $('#board').innerHTML=cols.map(c=>
+    '<div><div class="col-h2"><span class="bar" style="background:'+c.c+'"></span>'+c.lb
+    +(c.sub?'<span class="sub">'+c.sub+'</span>':'')
+    +'<span class="n">'+c.ids.length+'</span></div>'
+    +c.ids.map(it=>{
+      const s=it.sev==='h'?'#b03a2e':'#a76a12';
+      const q=quickAct(it);
+      return '<div class="fcard" data-id="'+it.id+'">'
+        +'<div class="fcard-t">'+it.title+'</div>'
+        +'<div class="fcard-f"><span class="sq" style="background:'+s+'">'+it.id.slice(-1)+'</span>'
+        +'<span class="who">'+(state.role==='builder'?it.floor:it.who)+'</span>'
+        +'<span>·</span><span>'+(state.role==='builder'?((FIELD[it.id]||{}).zone||''):it.floor)+'</span>'
+        +(it.over>0?'<span class="ov">· 超期 '+it.over+' 天</span>':'')
+        +(it.st==='closed'?'<span class="ok">· 已留痕</span>':'')
+        +(it.st==='dispute'?'<span class="ds">· 争议中</span>':'')
+        +(it.st==='rejected'?'<span style="color:#77839a">· 不成立</span>':'')
+        +'</div>'
+        +(q?'<div class="fca"><button class="btn sm '+(q.a==='mockfix'?'pri':'')+'" data-act="'+q.a+'" data-id="'+it.id+'">'+q.lb+'</button>'
+          +'<span class="hint">'+(it.st==='review'?'改后待提报人验收':'')+'</span></div>':'')
+        +'</div>';
+    }).join('')
+    +(c.ids.length?'':'<div class="col-empty">暂无</div>')
+    +'</div>').join('');
+}
+
+function renderInsight(){
+  const all=roleVisible(ITEMS).filter(i=>i.kind==='issue');
+  const open=all.filter(i=>!isEnded(i));
+  const rej=all.filter(i=>i.st==='rejected').length;
+  const over=open.filter(i=>i.over>0).length;
+  const by={};
+  open.forEach(i=>by[i.owner]=(by[i.owner]||0)+1);
+  const top=Object.entries(by).sort((a,b)=>b[1]-a[1])[0]||['—',0];
+  const R=state.role;
+  const set=(i,k,v,u,tip)=>{
+    $('#k'+i).textContent=k; $('#v'+i).textContent=v; $('#u'+i).textContent=u;
+    if(tip!==undefined && $('#tp'+i)) $('#tp'+i).textContent=tip;
+  };
+
+  if(R==='builder'){
+    set(1,'我提报',all.filter(i=>srcOf(i)==='builder').length,'条','现场照片为必填');
+    set(2,'待我整改',all.filter(i=>isMyFix(i)&&!isEnded(i)).length,'条','责任方是施工');
+    set(3,'待我确认',all.filter(i=>isMyReport(i)&&(i.st==='review'||i.st==='replied')).length,'条','设计院已交回');
+    set(4,'超期',over,'条');
+    set(5,'已闭合',all.filter(i=>i.st==='closed').length,'条');
+  }else if(R==='designer'){
+    set(1,'待我受理',all.filter(i=>i.st==='new'&&isDesignJob(i)).length,'条','24 小时内');
+    set(2,'待我交回',all.filter(i=>i.st==='open'&&isDesignJob(i)).length,'条','改图或说明');
+    set(3,'争议',all.filter(i=>i.st==='dispute').length,'条');
+    set(4,'已闭合',all.filter(i=>i.st==='closed').length,'条');
+    set(5,'平均闭环',3.8,'天','本项目');
+  }else{
+    set(1,'未闭合',open.length,'条');
+    set(2,'待回复',all.filter(i=>i.st==='new').length,'条','已推送未受理');
+    set(3,'超期',over,'条');
+    set(4,'已闭合',all.filter(i=>i.st==='closed').length,'条',rej?'另有 '+rej+' 条驳回':'');
+    set(5,'平均闭环',3.2,'天','从提报到闭合');
+  }
+
+  $('#t-loc').textContent=all.length;
+  $('#t-cons').textContent=ITEMS.filter(i=>i.kind==='cons').length;
+  $('#t-flow').textContent=all.length;
+}
+
+/* ================= 交互 ================= */
+function select(id){
+  if(state.mode!=='view'){
+    state.mode='view'; state.draft=null;
+    $('#pickbar').classList.remove('on');
+    $('#drawCanvas').classList.remove('picking');
+  }
+  state.sel=id;
+  const it=byId(id);
+  if(it&&it.kind==='cons'){ /* 一致性项也带坐标 */ }
+  renderDraw(); renderModel(); renderCard();
+  if(window.innerWidth<=880) sheet(true);
+  $('#sheetMeta').textContent=(it&&it.fig? it.fig.replace('DWG#','')+' · 关联':'M-5F-01 · V3');
+}
+
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),2400);
+}
+
+function openPhoto(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*'; inp.multiple=true; inp.style.display='none';
+  inp.addEventListener('change',()=>{
+    [...inp.files].forEach(f=>{
+      const r=new FileReader();
+      r.onload=()=>{ (state.draft.photos=state.draft.photos||[]).push(r.result); renderForm(); };
+      r.readAsDataURL(f);
+    });
+  });
+  document.body.appendChild(inp); inp.click();
+}
+
+document.addEventListener('change',e=>{
+  if(e.target.id==='fMajor'&&state.draft){ state.draft.major=e.target.value; renderForm(); }
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='fDesc'&&state.draft){ state.draft.desc=e.target.value; }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&state.mode!=='view') exitPick();
+});
+
+document.addEventListener('click',e=>{
+  const dcv=$('#drawCanvas');
+  if(state.mode==='pick' && dcv && dcv.contains(e.target)){
+    const r=dcv.getBoundingClientRect();
+    const dx=Math.max(3,Math.min(97,(e.clientX-r.left)/r.width*100));
+    const dy=Math.max(4,Math.min(96,(e.clientY-r.top)/r.height*100));
+    state.draft={dx:+dx.toFixed(1),dy:+dy.toFixed(1),floor:'5F',
+      fig:'DWG#4F2A-'+(300+Math.round(dx)),comp:'Revit#'+(1284000+Math.round(dx*10)),photos:[]};
+    state.draft.major=inferMajor(state.draft);
+    state.mode='form';
+    renderAll();
+    return;
+  }
+  if(e.target.closest('#newBtn')){ startPick(); return; }
+  if(e.target.closest('#pickCancel')||e.target.closest('#fCancel')){ exitPick(); return; }
+  if(e.target.closest('#fSubmit')){ submitDraft(); return; }
+  if(e.target.closest('#phAdd')){ openPhoto(); return; }
+  const chip=e.target.closest('.fchip');
+  if(chip){ state.draft.cat=chip.dataset.cat; renderForm(); return; }
+
+  const pin=e.target.closest('.pin');
+  if(pin){ select(pin.dataset.id); return; }
+
+  const q=e.target.closest('.qitem');
+  if(q&&q.dataset.id){ select(q.dataset.id); return; }
+
+  const bf=e.target.closest('[data-bf]');
+  if(bf){ state.bfilter=bf.dataset.bf; renderFlow(); return; }
+
+  /* 动作优先于卡片跳转：否则看板上的按钮会被"定位到图纸"抢走 */
+  const act=e.target.closest('[data-act]');
+  if(act){
+    const id=act.dataset.id||state.sel;
+    const it=byId(id); if(!it) return;
+    state.sel=id;
+    const a=act.dataset.act;
+    if(a==='ok'){
+      it.confirmed=true;
+      if(it.tier==='reject') toast('已转人工，系统不出具结论，也不猜');
+      else toast('已确认成立，派单给 '+it.owner);
+    }
+    else if(a==='accept'){ it.st='open'; toast('已受理，开始计时。请选择：改图交回，或回复说明'); }
+    else if(a==='no'){
+      it.st='rejected';
+      it.rejectNote=it.rejectNote||'经核实，本条依据不充分或与现场条件不符，判定不成立。';
+      toast('已驳回并留痕：不计入闭环率，进入「已驳回」列；提报人可重开一次');
+    }
+    else if(a==='urge'){ it.urged=true; toast('已催办：短信 + 企业微信推送给 '+it.owner+'，计入履约评分'); }
+    else if(a==='escalate'){ it.escalated=true; toast('已升级给专业负责人并抄送甲方，24 小时内须给答复'); }
+    else if(a==='appeal'){ it.appealed=true; it.confirmed=false; toast('已记录异议，转设计院技术复核，不计为未整改'); }
+    else if(a==='undo'){ it.st='open'; it.appealed=false; toast('已撤销提报，回到待处理'); }
+    else if(a==='none'){ toast('已提报，等待建设单位复核'); }
+    else if(a==='mockfix'){ it.st='review'; it.over=0; it.fixed=true; toast('已交回修改，附同视口截图，进入待复核（由提报人验收）'); }
+    else if(a==='close'){
+      if(!canVerify(it)){ toast('无权闭合：闭合由提报人（或甲方裁定）执行，设计院不能自验自闭合'); return; }
+      it.st='closed'; toast('已闭合，截图与锚点已归档');
+    }
+    else if(a==='reject'){ it.st='open'; toast('已退回：修改未通过复核，重新计入处理中'); }
+    else if(a==='reply'){ it.st='replied'; it.tlNote=it.tlNote||'此处净高按 2.40m 控制，说明中已注明，无需修改图纸。'; toast('已回复提报人（未改图），进入「已回复待确认」'); }
+    else if(a==='dispute'){ it.st='dispute'; it.tlNote=it.tlNote||'此处受结构梁底标高限制，无法按原方案调整，建议结构专业复核后再定。'; toast('已提交异议，转甲方裁定'); }
+    else if(a==='rule_ok'){ it.st='open'; toast('裁定成立：问题维持，退回设计师重新处理'); }
+    else if(a==='reopen'){
+      it.st='open'; it.rejectNote=null;
+      it.reopened=(it.reopened||0)+1;
+      toast('已重开，回到处理中'+(it.reopened>1?'（第 '+it.reopened+' 次，建议转甲方裁定）':'，请补充证据'));
+    }
+    else if(a==='consfix'){ toast('已派单，附图纸锚点与模型构件'); }
+    else if(a==='bcf'){ toast('已导出 BCF 2.1 视点，可在 Revit / Solibri 打开'); }
+    renderAll(); return;
+  }
+
+  const f=e.target.closest('.fcard');
+  if(f){ select(f.dataset.id); switchView('loc'); toast('已定位到图纸与模型对应位置'); return; }
+
+  const g=e.target.closest('[data-goto]');
+  if(g){ switchView('loc'); select(g.dataset.goto); toast('已联动定位'); return; }
+
+  const tab=e.target.closest('.tab');
+  if(tab){ switchView(tab.dataset.v); return; }
+
+  const role=e.target.closest('.role');
+  if(role){
+    state.role=role.dataset.r;
+    state.bfilter='all';
+    document.body.dataset.role=state.role;
+    if(state.role==='builder'){
+      const vis=roleVisible(ITEMS).filter(i=>i.kind==='issue');
+      if(!vis.some(i=>i.id===state.sel)) state.sel=vis[0].id;
+    }
+    $$('.role').forEach(b=>b.classList.toggle('on',b===role));
+    $('#roleNow').textContent={owner:'甲方',builder:'施工方',designer:'设计院'}[state.role];
+    renderAll();
+    toast({owner:'甲方视角：只看还有几条没闭合、卡在谁那里',
+           builder:'施工方视角：只看已定性的问题 —— 怎么做、卡在哪个节点',
+           designer:'设计院视角：规则依据、置信度、构件锚点全给'}[state.role]);
+    return;
+  }
+
+  const ct=e.target.closest('.ctab');
+  if(ct){ state.consCat=ct.dataset.c; $$('.ctab').forEach(b=>b.classList.toggle('on',b===ct)); renderCons(); return; }
+
+  const lb=e.target.closest('[data-layer]');
+  if(lb){ state.layer=lb.dataset.layer; $$('[data-layer]').forEach(b=>b.classList.toggle('on',b===lb)); renderDraw(); return; }
+
+  const mv=e.target.closest('[data-view]');
+  if(mv){ $$('[data-view]').forEach(b=>b.classList.toggle('on',b===mv)); toast('视图切换（原型仅演示轴测）'); return; }
+});
+
+function switchView(v){
+  state.view=v;
+  $$('.view').forEach(s=>s.classList.remove('on'));
+  $('#v-'+v).classList.add('on');
+  $$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
+  if(v==='cons') renderCons();
+  if(v==='flow') renderFlow();
+  if(v==='loc'&&window.innerWidth<=880) sheet(true);
+}
+
+$('#dgSwitch').addEventListener('click',()=>{
+  state.degraded=!state.degraded;
+  $('#dgSwitch').classList.toggle('on',!state.degraded);
+  const mp=$('#modelPane');
+  mp.classList.toggle('degraded',state.degraded);
+  $('#dgLabel').textContent=state.degraded?'仅图纸模式':'图模双窗';
+  if(state.degraded){
+    mp.querySelector('.pane-body').innerHTML='<div class="dg"><div class="dg-t">当前项目未提供模型</div>'
+      +'<div class="dg-s">已降级为图纸单端模式：问题仍可定位到图纸图元，一致性校验暂停，'
+      +'AI 判定改为「人工标注 + 自动聚合」。<br><br>这是很多改造类项目的真实状态。</div></div>';
+    toast('已切换：只有图纸也能用，图模联动自动降级');
+  }else{
+    mp.querySelector('.pane-body').innerHTML=MODEL_BODY;
+    renderModel(); renderCard();
+    toast('已恢复图模双窗联动');
+  }
+});
+
+$('#bcfBtn').addEventListener('click',()=>toast('已导出 BCF 2.1 · 3 个视点（App 无关，可在 Revit / Navisworks / Solibri 打开）'));
+$('#remindBtn').addEventListener('click',()=>toast('已向 设计院·机电 推送 2 条超期提醒（微信 + 邮件）'));
+
+/* 手机端预览：不依赖服务器，直接把当前页克隆进 srcdoc，并带上当前角色。
+   之前用 location.pathname+'?m=1' 在 file:// 和预览沙箱里都会白屏。 */
+$('#phoneBtn').addEventListener('click',()=>{
+  const f=$('#phoneFrame');
+  const doc=document.documentElement.cloneNode(true);
+  const pm=doc.querySelector('#phoneMask');
+  if(pm) pm.classList.remove('on');            /* 手机里不要再套一层手机 */
+  const s=document.createElement('script');
+  s.textContent='window.__PHONE__=1;window.__ROLE__='+JSON.stringify(state.role)+';';
+  doc.querySelector('head').prepend(s);
+  f.removeAttribute('srcdoc');
+  f.srcdoc='<!DOCTYPE html>'+doc.outerHTML;
+  $('#phoneMask').classList.add('on');
+});
+$('#phoneClose').addEventListener('click',()=>$('#phoneMask').classList.remove('on'));
+/* 手机端：画布按可用空间等比适配，避免图纸被抽屉压掉一截 */
+function fitCanvas(){
+  const mob=window.innerWidth<=880;
+  $$('#v-loc .pane-body').forEach(b=>{
+    const c=b.querySelector('.canvas'); if(!c) return;
+    if(!mob){ c.style.width=''; c.style.height=''; return; }
+    const w=b.clientWidth-12, h=b.clientHeight-16;
+    if(w<=0||h<=0) return;
+    const cw=Math.max(120,Math.min(w,h*640/430));
+    c.style.width=cw+'px'; c.style.height=(cw*430/640).toFixed(1)+'px';
+  });
+}
+/* 手机端卡片抽屉：收起时把图纸区让出来 */
+function sheet(open){
+  const p=$('#panel');
+  if(open){ p.classList.add('up'); p.classList.remove('mini'); }
+  else { p.classList.add('up','mini'); }
+  $('#panelX').textContent=open?'收起':'展开';
+  document.body.classList.toggle('sheet-off',!open);
+  fitCanvas();
+  requestAnimationFrame(fitCanvas);
+  setTimeout(fitCanvas,280);
+}
+window.addEventListener('resize',()=>{requestAnimationFrame(fitCanvas);});
+$('#panelX').addEventListener('click',()=>sheet(false));
+/* 手机只给一个窗口：图纸 / 模型 */
+$('#mpSeg').addEventListener('click',e=>{
+  const b=e.target.closest('[data-mp]'); if(!b) return;
+  document.body.dataset.mp=b.dataset.mp;
+  $$('#mpSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  requestAnimationFrame(fitCanvas);
+  toast(b.dataset.mp==='dwg'?'图纸视图（手机上不同时开两个窗口）':'模型视图 · 同一问题锚点联动');
+});
+$('#phoneMask').addEventListener('click',e=>{ if(e.target.id==='phoneMask') $('#phoneMask').classList.remove('on'); });
+
+/* mobile embed: hide preview button */
+if(window.__PHONE__ || new URLSearchParams(location.search).get('m')==='1'){
+  $('#phoneBtn').style.display='none';
+  document.body.style.overflow='hidden';
+}
+
+function renderAll(){renderInsight();renderDraw();renderModel();renderCard();renderCons();renderFlow();}
+
+/* 启动：把 state 里的角色/视图同步到顶栏，再渲染一次 */
+(function boot(){
+  document.body.dataset.role=state.role;
+  $$('.role').forEach(b=>b.classList.toggle('on',b.dataset.r===state.role));
+  const rn=$('#roleNow'); if(rn) rn.textContent={owner:'甲方',builder:'施工方',designer:'设计院'}[state.role];
+  if(state.role==='builder'){
+    const vis=roleVisible(ITEMS).filter(i=>i.kind==='issue');
+    if(!vis.some(i=>i.id===state.sel)) state.sel=vis[0].id;
+  }
+  renderAll();
+  if(state.view!=='loc') switchView(state.view);
+})();
+if(window.innerWidth<=880) sheet(true);
+</script>
+</body>
+</html>

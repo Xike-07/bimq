@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bimQ · 项目问题闭环平台｜产品作品集</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%231f5fd0'/%3E%3Ccircle cx='7' cy='7' r='4.4' stroke='%23fff' stroke-width='1.6' fill='none'/%3E%3Cpath d='M5.3 7.1l1.4 1.4 2.8-3' stroke='%23fff' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta name="description" content="bimQ：面向工程项目的图模问题闭环平台。从方向判断到七态状态机、权限矩阵、双端原型的完整产品设计。">
+<style>
+:root{
+  --ink:#0f1b2d; --ink2:#2c3a4e; --muted:#66748a; --faint:#94a1b5;
+  --line:#e1e7f0; --line2:#c9d4e4;
+  --bg:#f1f5fa; --surface:#fff; --canvas:#fbfcfe;
+  --brand:#1f5fd0; --brand2:#3b7de8; --brandSoft:#eaf1fd;
+  --brandDeep:#0f3a80; --brandDeep2:#1b55b8;
+  --ok:#1e7a57; --okSoft:#e8f4ef;
+  --warn:#a76a12; --warnSoft:#fbf0df;
+  --bad:#b03a2e; --badSoft:#faeae7;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.75;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1060px;margin:0 auto;padding:0 28px}
+::selection{background:#cfe0fb}
+
+/* top */
+.top{position:sticky;top:0;z-index:50;background:linear-gradient(96deg,#0d3576 0%,#1a51ae 55%,#2a67d6 100%);color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.10),0 6px 20px -12px rgba(9,30,70,.6)}
+.top .wrap{display:flex;align-items:center;gap:12px;height:56px}
+.mark{width:26px;height:26px;border-radius:7px;background:#fff;color:#16469e;display:grid;place-items:center;flex:0 0 auto;box-shadow:0 1px 3px rgba(6,26,60,.25)}
+.wm{font-weight:600;font-size:15px;letter-spacing:-.01em;line-height:1.1}
+.wm i{font-style:normal;font-weight:700;color:#a9c9ff;margin-left:1px}
+.wm small{display:block;font-size:9px;font-weight:400;color:rgba(255,255,255,.6);letter-spacing:.12em}
+.top .crumb{font-size:12.5px;color:rgba(255,255,255,.72);border-left:1px solid rgba(255,255,255,.2);padding-left:13px;margin-left:2px}
+.top nav{margin-left:auto;display:flex;gap:4px;align-items:center}
+.top nav a{font-size:12.5px;color:rgba(255,255,255,.76);padding:5px 11px;border-radius:7px;transition:.15s}
+.top nav a:hover{color:#fff;background:rgba(255,255,255,.12)}
+.btn-top{background:#fff;color:#16469e !important;font-weight:500;padding:6px 14px !important;border-radius:8px;box-shadow:0 1px 2px rgba(6,26,60,.18)}
+.btn-top:hover{background:#eef4ff !important;color:#0d3576 !important}
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#0b2d63 0%,#123f8a 46%,#1b56b4 100%);color:#fff;padding:76px 0 84px}
+.hero:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(120% 80% at 50% 0,#000 20%,transparent 78%)}
+.hero:after{content:"";position:absolute;width:620px;height:620px;right:-180px;top:-260px;border-radius:50%;background:radial-gradient(circle,rgba(120,176,255,.34),transparent 62%)}
+.hero .wrap{position:relative;z-index:2}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.06em;color:#a9c9ff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);padding:5px 12px;border-radius:99px}
+.kicker b{color:#fff;font-weight:500}
+.hero h1{font-size:44px;line-height:1.22;font-weight:600;letter-spacing:-.02em;margin:22px 0 0;max-width:16em;text-wrap:balance}
+.hero h1 em{font-style:normal;color:#8fb6f5}
+.hero .lead{margin-top:16px;font-size:16.5px;color:rgba(255,255,255,.82);max-width:38em;line-height:1.82}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.chip{font-size:12.5px;color:rgba(255,255,255,.86);background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);padding:5px 12px;border-radius:8px;display:flex;align-items:center;gap:7px}
+.chip b{font-family:var(--mono);font-size:12px;color:#a9c9ff;font-weight:500}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:9px;font-size:14.5px;padding:12px 22px;border-radius:10px;font-weight:500;transition:.18s;border:1px solid transparent}
+.btn-main{background:#fff;color:#123f8a;box-shadow:0 8px 22px -10px rgba(0,0,0,.5)}
+.btn-main:hover{transform:translateY(-1px);box-shadow:0 12px 26px -10px rgba(0,0,0,.55)}
+.btn-ghost{border-color:rgba(255,255,255,.34);color:#fff}
+.btn-ghost:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+.btn svg{width:16px;height:16px}
+.hero-note{margin-top:18px;font-size:12.5px;color:rgba(255,255,255,.56)}
+.hero-note b{color:rgba(255,255,255,.8);font-weight:500}
+
+/* section */
+section.sec{padding:68px 0;border-bottom:1px solid var(--line);scroll-margin-top:64px}
+section.sec:nth-of-type(even){background:#fff}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.num{font-family:var(--mono);font-size:12px;color:var(--brand);letter-spacing:.08em}
+.sec h2{font-size:26px;font-weight:600;letter-spacing:-.015em;line-height:1.4}
+.sec .sub{color:var(--muted);font-size:15px;max-width:none;margin-top:10px;text-wrap:pretty}
+.rule{height:1px;background:var(--line);margin:26px 0 34px}
+.nb{white-space:nowrap}
+
+/* cards */
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;transition:.2s;position:relative;overflow:hidden}
+section.sec:nth-of-type(even) .card{background:var(--canvas)}
+.card:hover{border-color:#b9cbe6;box-shadow:0 10px 28px -18px rgba(16,52,110,.35);transform:translateY(-2px)}
+.card h3{font-size:15.5px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.card p{font-size:13.8px;color:var(--ink2);line-height:1.78}
+.card .quote{font-size:13.2px;color:var(--muted);border-left:2px solid var(--line2);padding-left:11px;margin-top:12px;font-style:normal}
+.tagline{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--brand);background:var(--brandSoft);padding:2px 7px;border-radius:5px;letter-spacing:.02em}
+.card .who{font-size:11.5px;color:var(--faint);letter-spacing:.04em;text-transform:uppercase;font-family:var(--mono)}
+
+/* before-after */
+.ba{display:grid;grid-template-columns:1fr 54px 1fr;align-items:center;gap:0;margin-top:8px}
+.ba .pane{border-radius:14px;padding:24px;border:1px solid var(--line);background:#fff}
+.ba .old{background:#fbfbfc;border-style:dashed}
+.ba .new{background:linear-gradient(155deg,#f4f8ff,#fff);border-color:#c3d6f2;box-shadow:0 12px 30px -24px rgba(20,60,130,.6)}
+.ba .pane .who{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--faint)}
+.ba .pane .big{font-size:16.5px;font-weight:600;margin:8px 0 10px}
+.ba .pane ul{list-style:none;display:grid;gap:7px;margin-top:6px}
+.ba .pane li{font-size:13.5px;color:var(--ink2);padding-left:16px;position:relative}
+.ba .pane li:before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--line2)}
+.ba .new li:before{background:var(--brand2)}
+.ba .arrow{display:grid;place-items:center;color:var(--brand);font-size:20px}
+
+/* flow svg */
+.flowwrap{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px 22px 18px;box-shadow:0 16px 40px -34px rgba(16,52,110,.5)}
+.flowwrap svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+.d1{background:var(--brandSoft);border:1px solid #b9cff0}
+.d2{background:var(--okSoft);border:1px solid #b6d9ca}
+.d3{background:var(--warnSoft);border:1px solid #e6cda3}
+.d4{background:var(--badSoft);border:1px solid #e5bdb6}
+
+/* rule list */
+.rules{display:grid;gap:14px}
+.rule-item{display:grid;grid-template-columns:auto 1fr;gap:18px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.rule-item .idx{font-family:var(--mono);font-size:12px;color:#fff;background:var(--brand);width:26px;height:26px;border-radius:8px;display:grid;place-items:center;margin-top:2px}
+.rule-item h4{font-size:15.5px;font-weight:600;margin-bottom:6px}
+.rule-item p{font-size:13.8px;color:var(--ink2)}
+.rule-item .why{font-size:13px;color:var(--muted);margin-top:8px}
+.rule-item .why b{color:var(--bad);font-weight:600}
+
+/* table */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tbl th,.tbl td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl thead th{background:#f6f9fd;font-weight:500;color:var(--muted);font-size:12.5px;white-space:nowrap}
+.tbl tbody tr:last-child td{border-bottom:none}
+.tbl td b{font-weight:600}
+.tbl .c{text-align:center}
+.yes{color:var(--ok);font-weight:600}
+.no{color:#b8c2d1}
+
+/* ai */
+.ai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ai-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px}
+.ai-card .n{font-family:var(--mono);font-size:11px;color:var(--brand2)}
+.ai-card h4{font-size:14px;font-weight:600;margin:6px 0 5px}
+.ai-card p{font-size:12.8px;color:var(--muted);line-height:1.7}
+.forbid{margin-top:14px;border:1px solid #e5bdb6;background:var(--badSoft);border-radius:12px;padding:16px 20px;font-size:13.8px;color:#7c2a20}
+.forbid b{font-weight:600}
+
+/* steps */
+.steps{display:grid;gap:0;counter-reset:s}
+.step{display:grid;grid-template-columns:52px 1fr;gap:0;position:relative;padding-bottom:26px}
+.step:before{content:"";position:absolute;left:25px;top:34px;bottom:0;width:1px;background:var(--line2)}
+.step:last-child{padding-bottom:0}
+.step:last-child:before{display:none}
+.step .cir{width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid var(--line2);display:grid;place-items:center;font-family:var(--mono);font-size:12.5px;color:var(--brand);position:relative;z-index:2}
+.step .body{padding-top:3px}
+.step h4{font-size:15.5px;font-weight:600;margin-bottom:4px}
+.step p{font-size:13.8px;color:var(--ink2);max-width:48em;text-wrap:pretty}
+.step .out{display:inline-block;margin-top:7px;font-family:var(--mono);font-size:11.5px;color:var(--brand);background:var(--brandSoft);padding:3px 9px;border-radius:6px}
+
+/* phones */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.col-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px}
+.col-card .hd{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.col-card .hd .ico{width:32px;height:32px;border-radius:9px;background:var(--brandSoft);color:var(--brand);display:grid;place-items:center}
+.col-card h4{font-size:15.5px;font-weight:600}
+.col-card .s{font-size:12px;color:var(--faint);font-family:var(--mono)}
+.col-card ul{list-style:none;display:grid;gap:9px}
+.col-card li{font-size:13.5px;color:var(--ink2);padding-left:18px;position:relative}
+.col-card li:before{content:"—";position:absolute;left:0;color:var(--line2)}
+.col-card li b{font-weight:600;color:var(--ink)}
+
+/* closing */
+.close-sec{background:linear-gradient(160deg,#0b2d63,#1b56b4);color:#fff;padding:66px 0;text-align:center;border:none}
+.close-sec h2{font-size:28px;font-weight:600;letter-spacing:-.015em}
+.close-sec p{color:rgba(255,255,255,.76);margin-top:12px;font-size:15px}
+.close-sec .cta{justify-content:center}
+footer{background:#0a2450;color:rgba(255,255,255,.5);padding:26px 0;font-size:12.5px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media(max-width:900px){
+  .g3,.ai-grid{grid-template-columns:1fr 1fr}
+  .ba{grid-template-columns:1fr;gap:12px}
+  .ba .arrow{transform:rotate(90deg)}
+  .two-col{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  body{font-size:14px}
+  .hero{padding:52px 0 58px}
+  .hero h1{font-size:30px}
+  .hero .lead{font-size:15px}
+  .g3,.g2,.ai-grid{grid-template-columns:1fr}
+  .wrap{padding:0 18px}
+  section.sec{padding:46px 0}
+  .sec h2{font-size:21px}
+  .top nav a:not(.btn-top){display:none}
+  .top .crumb{display:none}
+  .rule-item{grid-template-columns:1fr;gap:10px}
+  .tbl{font-size:12.5px}
+  .tbl th,.tbl td{padding:9px 11px}
+}
+
+/* key 结论块 */
+.key{margin:20px 0 26px;background:#f4f8ff;border:1px solid #cadcf8;border-left:4px solid var(--brand);border-radius:0 12px 12px 0;padding:15px 20px 14px}
+.key .k{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--brand);margin-bottom:5px}
+.key p{font-size:19.5px;font-weight:600;color:var(--brandDeep);line-height:1.55;letter-spacing:-.01em;text-wrap:pretty}
+
+/* 与竞品/AI 主卡 */
+.ai-wide{background:linear-gradient(150deg,#f5f9ff,#fff);border:1px solid #c3d6f2;border-radius:14px;padding:22px 24px 20px}
+.ai-wide .n{font-family:var(--mono);font-size:11px;color:var(--brand)}
+.ai-wide h4{font-size:17px;font-weight:600;margin:7px 0 8px;letter-spacing:-.01em}
+.ai-wide p{font-size:13.8px;color:var(--ink2);line-height:1.8}
+.pipe{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:14px 0 18px;font-size:12px;color:var(--muted)}
+.pipe span{border:1px solid #dbe4f2;background:#fff;border-radius:7px;padding:5px 10px;white-space:nowrap}
+.pipe span.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:500}
+.pipe i{color:#a9b7cb;font-style:normal;font-size:13px}
+.risk{font-size:12.8px;color:var(--muted);line-height:1.7}
+.risk b{display:block;font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:5px}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.mhint{display:none}
+@media(max-width:640px){
+  .tbl{min-width:560px}
+  .mhint{display:block;font-size:12px;color:var(--faint);margin:0 0 7px}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="wrap">
+    <div class="mark">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="7.2" cy="7.2" r="5.1" stroke="currentColor" stroke-width="1.9"/><path d="M4.9 7.3l1.7 1.7 3.4-3.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.9 10.9l2.2 2.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+    </div>
+    <div class="wm">bim<i>Q</i><small>CLOSE THE LOOP</small></div>
+    <div class="crumb">产品作品集 · 工程问题闭环</div>
+    <nav>
+      <a href="#problem">问题</a>
+      <a href="#turn">转向</a>
+      <a href="#flow">状态机</a>
+      <a href="#ai">AI 边界</a>
+      <a href="#process">流程</a>
+      <a class="btn-top" href="prototype.html" target="_blank" rel="noopener">打开原型 →</a>
+    </nav>
+  </div>
+</div>
+
+
+<div class="hero">
+  <div class="wrap">
+    <span class="kicker"><b>独立产品设计</b> · 个人作品 · 2026.11 · 0 → 1</span>
+    <h1>让工程现场的问题<br>有人提报、有人回应、<em>有人验收</em></h1>
+    <p class="lead">bimQ 面向工程项目的图模问题管理：甲方与施工方在图纸及模型上原位标注问题，系统自动路由至对应专业设计师，设计师完成改图或出具说明，由提报人复核闭合。产品主体为人提报的问题，AI 位于辅助位置。</p>
+    <div class="chips">
+      <span class="chip"><b>3</b> 类角色</span>
+      <span class="chip"><b>7</b> 态流转</span>
+      <span class="chip"><b>4</b> 个 AI 落点</span>
+      <span class="chip"><b>2</b> 端（PC + 手机）</span>
+      <span class="chip"><b>0</b> 依赖单文件原型</span>
+    </div>
+    <div class="cta">
+      <a class="btn btn-main" href="prototype.html" target="_blank" rel="noopener">
+        打开可交互原型
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h9M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="btn btn-ghost" href="#flow">先看设计要点</a>
+    </div>
+    <p class="hero-note">项目产出：<b>已部署可交互线上 Demo</b>，覆盖甲方 / 施工方 / 设计院三类视角与 390px 移动端。原型为单文件、零依赖，建议桌面端打开。</p>
+  </div>
+</div>
+
+<!-- 01 问题 -->
+<section class="sec" id="problem">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">01</span><h2>工程现场并不缺少发现问题的能力，缺的是台账</h2></div>
+    <p class="sub">6 年建筑设计与审图经验中，现场问题大多能被看见，随后沉淀在群聊记录里。</p>
+    <div class="key">
+      <span class="k">核心结论</span>
+      <p>衡量指标收敛为两个数字：闭环率与驳回率。</p>
+    </div>
+    <div class="grid g3">
+      <div class="card">
+        <span class="who">甲方巡场</span>
+        <h3>净高不足、空间受限</h3>
+        <p>照片发至项目群并通知设计院，三日内无人确认处理状态。台账、责任人、时限三项均缺失。</p>
+        <p class="quote">此类问题无条文可依，仅能依靠人的判断。</p>
+      </div>
+      <div class="card">
+        <span class="who">施工方</span>
+        <h3>现场无法安装</h3>
+        <p>预留洞缺失、桥架与风管冲突、坡度不足。提出方式为电话沟通，设计师首轮反馈多为复核测量数据，三轮往复后提报行为停止。</p>
+        <p class="quote">照片的价值在于降低沟通成本。</p>
+      </div>
+      <div class="card">
+        <span class="who">设计院</span>
+        <h3>已改，无人确认</h3>
+        <p>修改结果以群内简短消息告知，是否改到位缺少可核对凭证，闭环依赖口头约定。</p>
+        <p class="quote">沉默是工程协作中成本最高的一环。</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:16px;font-weight:600;margin:34px 0 12px">三类提报入口，表单字段不同</h3>
+    <p class="mhint">表格较宽，可左右滑动查看</p>
+    <div class="tscroll">
+      <table class="tbl">
+        <thead><tr><th style="width:14%"></th><th>甲方（建设单位）</th><th>施工方</th><th>监理</th></tr></thead>
+        <tbody>
+          <tr><td><b>典型问题</b></td><td>净高不足、空间不够、功能不满足</td><td>现场装不进去、预留洞缺失、与图纸不符</td><td>工序验收不合格、隐蔽前问题</td></tr>
+          <tr><td><b>必填项</b></td><td>位置 + 描述 + 期望时间</td><td>位置 + 现场照片（≥1 张）+ 描述</td><td>位置 + 照片 + 验收项</td></tr>
+          <tr><td><b>照片</b></td><td>可选</td><td>强制，带拍摄时间水印</td><td>强制</td></tr>
+          <tr><td><b>默认抄送</b></td><td>监理 + 设计院专业负责人</td><td>甲方 + 监理</td><td>甲方</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:16px;font-weight:600;margin:30px 0 10px">自动路由的实现方式</h3>
+    <p style="font-size:14px;color:var(--ink2)">三层匹配与一层兜底：<b>专业层</b>（按点击位置的图层或最近构件推断暖通、给排水、电气、结构、建筑，允许人工修改）→ <b>区域层</b>（按图号与楼层查询专业责任人表）→ <b>时段层</b>（责任人休假或离职时转专业负责人，仍无匹配则转项目设计总负责人）→ <b>兜底</b>（24 小时未受理自动升级并抄送甲方）。</p>
+    <p style="font-size:14px;color:#8a4a12;margin-top:10px">表单需直接显示「将推送给 设计院·暖通 王工（负责 5F 机电）」并允许手动修改。路由不可见，提报行为即会停止。</p>
+  </div>
+</section>
+
+<!-- 02 转向 -->
+<section class="sec" id="turn">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">02</span><h2>一次方向修正：从「AI 判定」到「人提报」</h2></div>
+    <p class="sub">最初方向为 AI 自动审图，将建筑专业判断翻译为可执行规则。</p>
+    <div class="key">
+      <span class="k">核心结论</span>
+      <p>规则库只能覆盖可计算项，多数问题位于规则之外。</p>
+    </div>
+    <div class="ba">
+      <div class="pane old">
+        <span class="who">V1 / 已推翻</span>
+        <div class="big">AI 自动审图，输出问题清单</div>
+        <ul>
+          <li>规则库覆盖净高、间距、碰撞等可计算项</li>
+          <li>甲方高频提出的「平面空间不够用」无对应规则</li>
+          <li>判定由系统作出，责任主体随之模糊</li>
+          <li>输出止于发现问题，而瓶颈位于发现之后</li>
+        </ul>
+      </div>
+      <div class="arrow">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 12h15M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="pane new">
+        <span class="who">V3 / 最终方案</span>
+        <div class="big">人提报 + AI 辅助 + 责任闭环</div>
+        <ul>
+          <li>入口为人：甲方与施工方在图纸模型上原位标注</li>
+          <li>AI 承担填表、查重、规范建议与闭环质检</li>
+          <li>判定权归人，过程全留痕，责任可追溯</li>
+          <li>指标由「审出多少条」转为「闭合率与驳回率」</li>
+        </ul>
+      </div>
+    </div>
+    <div class="forbid" style="margin-top:18px;background:#f4f8ff;border-color:#c3d6f2;color:var(--ink2)">
+      <b>该转向的代价同样明确：</b>正面进入 Revizto / ACC Issues / Bluebeam 的竞争区间，AI 叙事强度下降。差异化定位于<b>中文语境、施工方零门槛、规范知识库</b>三项，不以 3D 引擎作为竞争点；AI 的说服力由「该做什么、不签什么字」的边界设计承担。
+    </div>
+
+    <h3 style="font-size:16px;font-weight:600;margin:32px 0 12px">四个硬风险：本版未解决，但已提前界定</h3>
+    <div class="grid g2">
+      <div class="card"><p class="risk"><b>责任认定</b>台账一旦存在，即可能成为索赔与工期争议的证据。需与法务约定平台记录的证据效力并写入合同，该项难度高于技术实现。</p></div>
+      <div class="card"><p class="risk"><b>消息过载</b>单项目月均 300 条问题，逐条推送将导致全员静音。采用聚合策略：每日两次汇总，仅超期与高优先级实时发送。</p></div>
+      <div class="card"><p class="risk"><b>设计师抵触</b>设计师易将其理解为监督工具。缓解方式为保留驳回权与澄清权，回复同样留痕，使其兼具免责凭证作用。</p></div>
+      <div class="card"><p class="risk"><b>照片合规</b>现场照片常含人脸、车牌与敏感区域。默认本地打码并于上传前二次确认，不留事后补救空间。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 状态机 -->
+<section class="sec" id="flow">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">03</span><h2>七态状态机：主链与两个并列出口</h2></div>
+    <p class="sub">关键设计位于「处理中」的两条并列出口：<b>完成改图</b>，或<b>仅出具说明</b>。二者合流时，「已回复但未改图」将被计入闭环。</p>
+    <div class="rule"></div>
+    <div class="flowwrap">
+      <svg viewBox="0 0 740 470" role="img" aria-label="bimQ 七态问题流转图">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" fill="#8fa3bf"/>
+          </marker>
+          <marker id="ahd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" fill="#c3a15f"/>
+          </marker>
+        </defs>
+        <g font-family="system-ui,'Microsoft YaHei',sans-serif">
+
+          <!-- 节点 -->
+          <g>
+            <rect x="14" y="204" width="128" height="46" rx="10" fill="#fff" stroke="#c9d4e4"/>
+            <text x="78" y="233" text-anchor="middle" font-size="13.5" fill="#0f1b2d">待受理</text>
+          </g>
+          <g>
+            <rect x="184" y="204" width="128" height="46" rx="10" fill="#fff" stroke="#1f5fd0" stroke-width="1.4"/>
+            <text x="248" y="233" text-anchor="middle" font-size="13.5" fill="#0f1b2d" font-weight="600">处理中</text>
+          </g>
+          <g>
+            <rect x="370" y="64" width="140" height="46" rx="10" fill="#eaf1fd" stroke="#b9cff0"/>
+            <text x="440" y="87" text-anchor="middle" font-size="13" fill="#0f3a80">待复核</text>
+            <text x="440" y="102" text-anchor="middle" font-size="10" fill="#5b7aa8">已改待验</text>
+          </g>
+          <g>
+            <rect x="370" y="204" width="140" height="46" rx="10" fill="#eaf1fd" stroke="#b9cff0"/>
+            <text x="440" y="227" text-anchor="middle" font-size="13" fill="#0f3a80">已回复</text>
+            <text x="440" y="242" text-anchor="middle" font-size="10" fill="#5b7aa8">待确认</text>
+          </g>
+          <g>
+            <rect x="370" y="348" width="140" height="46" rx="10" fill="#fbf0df" stroke="#e6cda3"/>
+            <text x="440" y="371" text-anchor="middle" font-size="13" fill="#7a4d0d">争议</text>
+            <text x="440" y="386" text-anchor="middle" font-size="10" fill="#9a7327">待甲方裁定</text>
+          </g>
+          <g>
+            <rect x="582" y="136" width="126" height="46" rx="10" fill="#e8f4ef" stroke="#b6d9ca"/>
+            <text x="645" y="165" text-anchor="middle" font-size="13.5" fill="#12533c" font-weight="600">已闭合</text>
+          </g>
+          <g>
+            <rect x="582" y="348" width="126" height="46" rx="10" fill="#faeae7" stroke="#e5bdb6"/>
+            <text x="645" y="371" text-anchor="middle" font-size="13" fill="#7c2a20">已驳回</text>
+            <text x="645" y="386" text-anchor="middle" font-size="10" fill="#a4574b">不成立</text>
+          </g>
+
+          <!-- 连线 -->
+          <g stroke="#8fa3bf" stroke-width="1.4" fill="none" marker-end="url(#ah)">
+            <path d="M142 227H182"/>
+            <path d="M312 214C338 214 340 87 368 87"/>
+            <path d="M312 227H368"/>
+            <path d="M312 240C338 240 340 371 368 371"/>
+            <path d="M510 87C548 87 552 150 580 152"/>
+            <path d="M510 227C548 227 552 168 580 166"/>
+            <path d="M510 371H580"/>
+          </g>
+          <!-- 回退（虚线） -->
+          <g stroke="#c3a15f" stroke-width="1.3" stroke-dasharray="4 4" fill="none" marker-end="url(#ahd)">
+            <path d="M440 64V40H248V202"/>
+            <path d="M440 394V432H248V250"/>
+            <path d="M440 252V346"/>
+          </g>
+
+          <!-- 标签 -->
+          <g font-size="10.5" fill="#66748a">
+            <text x="162" y="216" text-anchor="middle">受理</text>
+            <text x="350" y="126">改图交回</text>
+            <text x="320" y="219">只给说明</text>
+            <text x="352" y="316">申请驳回</text>
+            <text x="545" y="112" font-size="10.5">通过</text>
+            <text x="452" y="304">不接受</text>
+            <text x="552" y="204">接受</text>
+            <text x="546" y="362" text-anchor="middle">裁定不成立</text>
+            <text x="290" y="34" fill="#a8761f">不通过 · 退回复改</text>
+            <text x="290" y="450" fill="#a8761f">裁定成立 · 回处理中</text>
+          </g>
+          <g font-size="10" fill="#94a1b5">
+            <text x="78" y="270" text-anchor="middle">24h 未受理自动升级</text>
+            <text x="645" y="410" text-anchor="middle">可重开一次 → 回处理中</text>
+          </g>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i class="dot d1"></i>待验 / 待表态（提报人动作）</span>
+        <span><i class="dot d2"></i>终态 · 进闭环率</span>
+        <span><i class="dot d3"></i>争议（甲方裁定）</span>
+        <span><i class="dot d4"></i>终态 · 不进闭环率</span>
+        <span style="color:#c3a15f">┄ 虚线为退回与重开路径</span>
+      </div>
+    </div>
+
+    <h3 style="font-size:16px;font-weight:600;margin:30px 0 12px">七个状态：责任人与出口条件</h3>
+    <p class="mhint">表格较宽，可左右滑动查看</p>
+    <div class="tscroll">
+      <table class="tbl">
+        <thead><tr><th style="width:22%">状态</th><th style="width:26%">责任人</th><th>出口条件</th></tr></thead>
+        <tbody>
+          <tr><td><b>① 待受理</b></td><td>目标专业设计师</td><td>24 小时内受理；超时自动升级专业负责人并抄送甲方</td></tr>
+          <tr><td><b>② 处理中</b></td><td>设计院</td><td>三选一：改图交回 / 仅给说明 / 申请驳回</td></tr>
+          <tr><td><b>③ 待复核</b></td><td>提报人</td><td>通过 → 已闭合；不通过 → 退回处理中</td></tr>
+          <tr><td><b>④ 已回复</b></td><td>提报人</td><td>接受 → 已闭合；不接受 → 争议</td></tr>
+          <tr><td><b>⑤ 争议</b></td><td>甲方 / 监理</td><td>裁定成立 → 回处理中；不成立 → 已驳回</td></tr>
+          <tr><td><b>⑥ 已闭合</b></td><td>—</td><td>归档，计入闭环率与月报</td></tr>
+          <tr><td><b>⑦ 已驳回</b></td><td>提报人</td><td>确认终止；有异议可重开一次，回处理中</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 04 三条规则 -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">04</span><h2>三条规则，决定这套数字是否可信</h2></div>
+    <p class="sub">此类平台的主要失效方式为指标失真：闭环率显示 100%，现场未完成整改。</p>
+    <div class="key">
+      <span class="k">三条铁律</span>
+      <p>交回的人不能验收 · 驳回不等于闭合 · 待复核验「物」，已回复验「话」</p>
+    </div>
+    <div class="rules">
+      <div class="rule-item">
+        <div class="idx">1</div>
+        <div>
+          <h4>交回的人不能验收</h4>
+          <p>设计院可受理、改图、说明、申请驳回，<b>不具备闭合权限</b>。原型采用硬拦截，点击时提示「闭合由提报人执行，设计院不可自验自闭合」。</p>
+          <p class="why">由交回方执行验收，闭环率必然达到 100%，而现场问题数量不变。<b>该项属权限设计问题。</b></p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <div class="idx">2</div>
+        <div>
+          <h4>驳回 ≠ 闭合：两个终态</h4>
+          <p>闭合表示问题成立且已解决，计入闭环率；驳回表示问题不成立，<b>不计入</b>闭环率，单列驳回率以衡量提报质量，同样留痕并允许重开一次。</p>
+          <p class="why">二者合并时，提报 10 条、驳回 8 条、整改 2 条，系统呈现 100% 闭环；不设出口时，问题长期停留于「处理中」，问题池失去决策价值。</p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <div class="idx">3</div>
+        <div>
+          <h4>待复核验「物」，已回复验「话」</h4>
+          <p>判据唯一：<b>本次交回是否产生可验收的交付物</b>。附改后图纸与同视口截图进入待复核，仅附说明与条文依据进入已回复。</p>
+          <p class="why">待复核可退回重做，已回复只能升级裁决。「拒绝修改」由此获得区别于「正在修改」的状态。<b>状态合流，动作便无法追责。</b></p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:22px;overflow-x:auto">
+      <table class="tbl">
+        <thead>
+          <tr><th>动作</th><th class="c">设计院</th><th class="c">施工方</th><th class="c">甲方</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>受理 / 改图交回 / 回复说明 / 申请驳回</td><td class="c yes">✓</td><td class="c no">—</td><td class="c no">—</td></tr>
+          <tr><td>提报已整改（仅本人提报的）</td><td class="c no">—</td><td class="c yes">✓</td><td class="c no">—</td></tr>
+          <tr><td>复核通过 / 退回</td><td class="c no">—</td><td class="c yes">✓ 本人提报</td><td class="c yes">✓</td></tr>
+          <tr><td>闭合</td><td class="c no">—</td><td class="c yes">✓ 本人提报</td><td class="c yes">✓</td></tr>
+          <tr><td>判不成立（驳回）</td><td class="c no">仅可申请</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+          <tr><td>争议裁定</td><td class="c no">—</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 05 AI -->
+<section class="sec" id="ai">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">05</span><h2>AI 的四个落点与一条禁区</h2></div>
+    <p class="sub">AI 由「判定者」退至「辅助位」，业务接受度随之提高。本方案的核心判断：<b>AI 产品的边界设计重于能力清单。</b></p>
+    <div class="rule"></div>
+
+    <div class="ai-wide">
+      <span class="n">落点 01</span>
+      <h4>多模态识图：图纸参数提取与规范自动比对</h4>
+      <p>结合多模态大模型的识图能力，自动从 CAD 图纸中提取构件参数（尺寸、标高、间距），命中规范条文时进行自动比对，输出偏差值与条文出处，作为提报依据交设计师复核。</p>
+      <div class="pipe">
+        <span>CAD 图纸</span><i>→</i>
+        <span>多模态识图</span><i>→</i>
+        <span>构件参数：尺寸 / 标高 / 间距</span><i>→</i>
+        <span>规范条文命中</span><i>→</i>
+        <span class="on">偏差清单与条文出处</span>
+      </div>
+    </div>
+
+    <div class="ai-grid" style="margin-top:14px">
+      <div class="ai-card"><span class="n">02</span><h4>填表助手</h4><p>点击位置后自动推断专业与类别，预填描述模板，降低提报门槛。</p></div>
+      <div class="ai-card"><span class="n">03</span><h4>重复提报查重</h4><p>位置与语义双匹配，提示「5F 走廊已有相似问题，是否合并」，避免同一问题重复提报。</p></div>
+      <div class="ai-card"><span class="n">04</span><h4>闭环质检</h4><p>复核时比对改前改后同视口截图，提示「改动位置在 5F 西侧，与本条偏差 12m」，识别形式闭环。</p></div>
+    </div>
+
+    <div class="forbid">
+      <b>禁区：</b>AI 不判定问题是否成立、不承担责任分配、不替代设计师回复。判定一旦由 AI 作出，责任主体即被模糊，而该平台存在的全部意义，在于让责任落到具体的人。
+    </div>
+  </div>
+</section>
+
+<!-- 06 双端 -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">06</span><h2>PC 是审图台，手机是现场工具</h2></div>
+    <p class="sub">同一份数据，两种使用姿态。移动端重新回答一个问题：<b>在现场，使用者需要看清什么、需要完成什么。</b></p>
+    <div class="rule"></div>
+    <div class="two-col">
+      <div class="col-card">
+        <div class="hd">
+          <span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="2.5" y="4" width="19" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 20h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+          <div><h4>桌面端</h4><span class="s">REVIEW DESK</span></div>
+        </div>
+        <ul>
+          <li>图纸与模型<b>双窗联动</b>，问题锚点原位定位</li>
+          <li>问题池看板按状态分列，卡片可直接快捷处理</li>
+          <li>常驻右侧详情：时间轴、附件、责任人</li>
+          <li>顶部三视角切换（甲方 / 施工方 / 设计院）</li>
+          <li>图模版本核对工具：几何 / 构件数量 / 信息三项</li>
+        </ul>
+      </div>
+      <div class="col-card">
+        <div class="hd">
+          <span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="6.5" y="2.5" width="11" height="19" rx="2.4" stroke="currentColor" stroke-width="1.7"/><path d="M10.5 18.6h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+          <div><h4>移动端</h4><span class="s">SITE TOOL</span></div>
+        </div>
+        <ul>
+          <li><b>只开一个窗口</b>：图纸 / 模型切换，不做双窗</li>
+          <li>底部抽屉三态：展开 58vh / 收成 46px / 点图钉自动弹开</li>
+          <li>首屏数字压掉单位与说明，一行铺满</li>
+          <li><b>不提供角色切换</b>：手机为个人设备，身份随账号</li>
+          <li>图纸按可用空间等比缩放，锚点始终与图形对齐</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 流程 -->
+<section class="sec" id="process">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">07</span><h2>从灵感到一套可走通的原型</h2></div>
+    <p class="sub">七个步骤，每步收敛一个决策。<b>前一步的结论，是后一步的输入。</b></p>
+    <div class="rule"></div>
+    <div class="steps">
+      <div class="step"><div class="cir">01</div><div class="body">
+        <h4>JD 提取灵感，头脑风暴</h4>
+        <p>从岗位要求出发，头脑风暴产生多个领域与方向，汇总为四个候选。</p>
+        <span class="out">4 个候选方向</span>
+      </div></div>
+      <div class="step"><div class="cir">02</div><div class="body">
+        <h4>以经历作筛选器，收敛方向</h4>
+        <p>6 年 BIM 工程实践经验是供给判断力的核心资产，将方向收敛至图模问题领域。</p>
+        <span class="out">收敛到 1 个方向</span>
+      </div></div>
+      <div class="step"><div class="cir">03</div><div class="body">
+        <h4>扫竞品找空隙</h4>
+        <p>BIMface、Bluebeam、Solibri、Revizto、ACC Issues 逐一定位。结论可归纳为：部分产品让人看见模型，部分让人标出问题，部分让人判出问题，尚未有产品把「改完」贯彻到底。</p>
+        <span class="out">5 类竞品定位</span>
+      </div></div>
+      <div class="step"><div class="cir">04</div><div class="body">
+        <h4>推演可行性，主动推翻自己</h4>
+        <p>为规则库补齐六域矩阵与三层判定后，可计算项占比过低，据此推翻自动判定路线，转为人提报。</p>
+        <span class="out">关键决策：更换主体</span>
+      </div></div>
+      <div class="step"><div class="cir">05</div><div class="body">
+        <h4>先定状态机，再定权限，最后定页面</h4>
+        <p>状态机决定出口数量，权限决定按钮归属，页面是二者的呈现结果。</p>
+        <span class="out">7 态 · 3×6 权限矩阵</span>
+      </div></div>
+      <div class="step"><div class="cir">06</div><div class="body">
+        <h4>单文件高保真原型</h4>
+        <p>手写配合 AI 协作，零依赖可直接打开：图纸锚点定位、等轴测三维模型、问题池看板、三视角切换，另做 390px 移动端适配。</p>
+        <span class="out">单文件 · 双端</span>
+      </div></div>
+      <div class="step"><div class="cir">07</div><div class="body">
+        <h4>用真实缺陷驱动迭代</h4>
+        <p>9 轮评审，每轮只解决「哪条路径走不通」，不做视觉微调；每个缺陷回写至规则层（「驳回后无法退出」补出第七态），不以补丁方式处理。</p>
+        <span class="out">9 轮迭代 · 4 类实现缺陷</span>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- closing -->
+<div class="close-sec">
+  <div class="wrap">
+    <h2>问题管理的价值，<em style="font-style:normal;color:#8fb6f5">在于有人负责</em>。</h2>
+    <p>原型保留会被拦截的操作：切换角色后受权限约束的按钮、状态机的退回路径，以及手机端的现场视角。</p>
+    <div class="cta">
+      <a class="btn btn-main" href="prototype.html" target="_blank" rel="noopener">
+        打开 bimQ 可交互原型
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h9M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="btn btn-ghost" href="#problem">回到顶部</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>bimQ · 图模问题管理平台　|　独立产品设计（个人作品，未上线）· 2026.11</span>
+    <span>项目产出：已部署可交互线上 Demo · 文中数据均为演示数据，已脱敏</span>
+  </div>
+</footer>
+
+</body>
+</html>
