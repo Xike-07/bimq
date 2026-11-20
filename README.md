@@ -9,7 +9,7 @@
 
 ## 在线访问
 
-https://（用户名）.github.io/bimq/
+https://xike-07.github.io/bimq/
 
 ## 说明
 
